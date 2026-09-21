@@ -22,7 +22,7 @@ import {
 } from "~/components/ui/input-otp";
 import { Kbd } from "~/components/ui/kbd";
 import { Label } from "~/components/ui/label";
-import { NativeSelect } from "~/components/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "~/components/ui/native-select";
 import { Progress } from "~/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Slider } from "~/components/ui/slider";
@@ -66,7 +66,7 @@ export function ActionsControlsDemo({
             <Toggle aria-label="Toggle pin">
               <SparklesIcon />
             </Toggle>
-            <ToggleGroup type="single" defaultValue="week">
+            <ToggleGroup defaultValue={["week"]}>
               <ToggleGroupItem value="day">Day</ToggleGroupItem>
               <ToggleGroupItem value="week">Week</ToggleGroupItem>
               <ToggleGroupItem value="month">Month</ToggleGroupItem>
@@ -98,8 +98,10 @@ export function ActionsControlsDemo({
             <Switch defaultChecked />
           </div>
           <Slider
-            value={[progressValue]}
-            onValueChange={(values): void => setProgressValue(values[0] ?? 0)}
+            value={progressValue}
+            onValueChange={(value): void =>
+              setProgressValue(Array.isArray(value) ? (value[0] ?? 0) : value)
+            }
             max={100}
             step={1}
           />
@@ -120,14 +122,11 @@ export function ActionsControlsDemo({
             <InputGroupInput placeholder="Search accounts" />
             <InputGroupButton>Go</InputGroupButton>
           </InputGroup>
-          <NativeSelect
-            defaultValue="review"
-            options={[
-              { label: "Discovery", value: "discovery" },
-              { label: "Review", value: "review" },
-              { label: "Approved", value: "approved" },
-            ]}
-          />
+          <NativeSelect defaultValue="review">
+            <NativeSelectOption value="discovery">Discovery</NativeSelectOption>
+            <NativeSelectOption value="review">Review</NativeSelectOption>
+            <NativeSelectOption value="approved">Approved</NativeSelectOption>
+          </NativeSelect>
           <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />

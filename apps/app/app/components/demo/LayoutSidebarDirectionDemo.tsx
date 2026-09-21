@@ -1,12 +1,12 @@
 "use client";
 
 import { BellIcon, Layers3Icon, Settings2Icon } from "lucide-react";
-import { type ReactElement } from "react";
+import { type ReactElement, useState } from "react";
 
 import { ShowcaseCard } from "~/components/demo/shared";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { DirectionProvider, useDirection } from "~/components/ui/direction";
+import { DirectionProvider } from "~/components/ui/direction";
 import { Kbd } from "~/components/ui/kbd";
 import {
   Sidebar,
@@ -18,8 +18,10 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarSeparator,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "~/components/ui/sidebar-menu";
 
 function SidebarPreview(): ReactElement {
   const items = [
@@ -91,21 +93,23 @@ function SidebarPreview(): ReactElement {
   );
 }
 
-function DirectionDemo(): ReactElement {
-  const { dir, setDir } = useDirection();
-
+function DirectionDemo({
+  direction,
+  onToggle,
+}: {
+  direction: "ltr" | "rtl";
+  onToggle: () => void;
+}): ReactElement {
   return (
-    <div dir={dir} className="space-y-3 rounded-xl border border-border p-4">
+    <div dir={direction} className="space-y-3 rounded-xl border border-border p-4">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-semibold">Direction provider</div>
-          <div className="text-sm text-muted-foreground">Current mode: {dir.toUpperCase()}</div>
+          <div className="text-sm text-muted-foreground">
+            Current mode: {direction.toUpperCase()}
+          </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(): void => setDir((current) => (current === "ltr" ? "rtl" : "ltr"))}
-        >
+        <Button variant="outline" size="sm" onClick={onToggle}>
           Toggle Direction
         </Button>
       </div>
@@ -119,12 +123,17 @@ function DirectionDemo(): ReactElement {
 }
 
 export function LayoutSidebarDirectionDemo(): ReactElement {
+  const [direction, setDirection] = useState<"ltr" | "rtl">("ltr");
+
   return (
     <ShowcaseCard title="Sidebar and direction" description="Shell preview and RTL/LTR coverage.">
       <div className="space-y-4">
         <SidebarPreview />
-        <DirectionProvider>
-          <DirectionDemo />
+        <DirectionProvider direction={direction}>
+          <DirectionDemo
+            direction={direction}
+            onToggle={(): void => setDirection((current) => (current === "ltr" ? "rtl" : "ltr"))}
+          />
         </DirectionProvider>
       </div>
     </ShowcaseCard>

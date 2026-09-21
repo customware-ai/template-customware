@@ -20,7 +20,7 @@ export function LayoutDisclosureDemo(): ReactElement {
       description="Progressive disclosure for dense screens."
     >
       <div className="space-y-4">
-        <Accordion type="single" collapsible>
+        <Accordion>
           <AccordionItem value="item-1">
             <AccordionTrigger>Quote summary</AccordionTrigger>
             <AccordionContent>
@@ -29,10 +29,8 @@ export function LayoutDisclosureDemo(): ReactElement {
           </AccordionItem>
         </Accordion>
         <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm">
-              Toggle details
-            </Button>
+          <CollapsibleTrigger render={<Button variant="outline" size="sm" />}>
+            Toggle details
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3 text-sm text-muted-foreground">
             Collapsible content is useful when a full accordion feels too heavy.

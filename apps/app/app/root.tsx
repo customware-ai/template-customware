@@ -18,7 +18,7 @@ import "./app.css";
 import { ThemeProvider } from "./components/theme-provider";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
-import { Toaster } from "./components/ui/toaster";
+import { Toaster } from "./components/ui/toast";
 import { attachGlobalFrontendErrorHandlers, logFrontendError } from "./utils/error-logger";
 
 /**
@@ -466,8 +466,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
             <p className="text-muted-foreground">
               {error.statusText || "The requested page could not be found."}
             </p>
-            <Button asChild className="mt-6">
-              <a href="/">Go Home</a>
+            <Button render={<a href="/" aria-label="Go home" />} className="mt-6">
+              Go Home
             </Button>
           </CardContent>
         </Card>
@@ -491,8 +491,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
               {error.stack}
             </pre>
           )}
-          <Button asChild className="mt-6">
-            <a href="/">Go Home</a>
+          <Button render={<a href="/" aria-label="Go home" />} className="mt-6">
+            Go Home
           </Button>
         </CardContent>
       </Card>

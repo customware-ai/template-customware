@@ -1,10 +1,10 @@
 "use client";
 
-import { TablePropertiesIcon, WandSparklesIcon } from "lucide-react";
+import { CircleCheckIcon, TablePropertiesIcon, WandSparklesIcon } from "lucide-react";
 import { type Dispatch, type ReactElement, type SetStateAction } from "react";
 
 import { Section, ShowcaseCard } from "~/components/demo/shared";
-import { Alert } from "~/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Calendar } from "~/components/ui/calendar";
 import { Kbd, KbdGroup } from "~/components/ui/kbd";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -28,8 +28,12 @@ export function FeedbackSection({
           description="Status, empty, skeleton, and spinner states."
         >
           <div className="space-y-4">
-            <Alert variant="success" title="Catalog synced">
-              All intended components are wired into the client-only template.
+            <Alert>
+              <CircleCheckIcon />
+              <AlertTitle>Catalog synced</AlertTitle>
+              <AlertDescription>
+                All intended components are wired into the client-only template.
+              </AlertDescription>
             </Alert>
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -57,17 +61,17 @@ export function FeedbackSection({
         </ShowcaseCard>
         <ShowcaseCard
           title="Notifications"
-          description="Sonner and legacy toast coverage is triggered from the hero actions."
+          description="Generated Base UI toast coverage is triggered from the hero actions."
         >
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>Use the buttons above to trigger both notification stacks.</p>
+            <p>Use the buttons above to trigger standard and actionable notifications.</p>
             <div className="flex items-center gap-2">
               <TablePropertiesIcon className="size-4" />
-              <span>Legacy Radix toast stays available for compatibility.</span>
+              <span>One generated toast manager owns notifications.</span>
             </div>
             <div className="flex items-center gap-2">
               <WandSparklesIcon className="size-4" />
-              <span>Sonner is the preferred stack for new work.</span>
+              <span>Success, error, loading, and action states share the same surface.</span>
             </div>
           </div>
         </ShowcaseCard>

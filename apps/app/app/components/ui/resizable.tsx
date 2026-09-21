@@ -1,49 +1,45 @@
 "use client";
 
-import { GripVerticalIcon } from "lucide-react";
-import * as React from "react";
-import { Group, Panel, Separator } from "react-resizable-panels";
-
-import { cn } from "~/lib/utils";
+import { cn } from "cn";
+import type * as React from "react";
+import * as ResizablePrimitive from "react-resizable-panels";
 
 function ResizablePanelGroup({
   className,
-  orientation,
   ...props
-}: React.ComponentProps<typeof Group>): React.ReactElement {
+}: ResizablePrimitive.GroupProps): React.ReactElement {
   return (
-    <Group
-      className={cn("flex h-full w-full", orientation === "vertical" && "flex-col", className)}
-      orientation={orientation}
+    <ResizablePrimitive.Group
+      data-slot="resizable-panel-group"
+      className={cn("flex h-full w-full aria-[orientation=vertical]:flex-col", className)}
       {...props}
     />
   );
 }
 
-const ResizablePanel = Panel;
+function ResizablePanel({ ...props }: ResizablePrimitive.PanelProps): React.ReactElement {
+  return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />;
+}
 
 function ResizableHandle({
   withHandle,
   className,
   ...props
-}: React.ComponentProps<typeof Separator> & {
+}: ResizablePrimitive.SeparatorProps & {
   withHandle?: boolean;
 }): React.ReactElement {
   return (
-    <Separator
+    <ResizablePrimitive.Separator
+      data-slot="resizable-handle"
       className={cn(
-        "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:top-1/2 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0",
+        "relative flex w-px items-center justify-center bg-border ring-offset-background after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full aria-[orientation=horizontal]:after:left-0 aria-[orientation=horizontal]:after:h-1 aria-[orientation=horizontal]:after:w-full aria-[orientation=horizontal]:after:translate-x-0 aria-[orientation=horizontal]:after:-translate-y-1/2 [&[aria-orientation=horizontal]>div]:rotate-90",
         className,
       )}
       {...props}
     >
-      {withHandle ? (
-        <div className="z-10 flex size-5 items-center justify-center rounded-md border border-border bg-background shadow-xs">
-          <GripVerticalIcon className="size-3.5 text-muted-foreground" />
-        </div>
-      ) : null}
-    </Separator>
+      {withHandle && <div className="z-10 flex h-6 w-1 shrink-0 rounded-lg bg-border" />}
+    </ResizablePrimitive.Separator>
   );
 }
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle };
+export { ResizableHandle, ResizablePanel, ResizablePanelGroup };

@@ -1,40 +1,49 @@
 "use client";
 
-import { HoverCard as HoverCardPrimitive } from "radix-ui";
-import * as React from "react";
+import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
+import { cn } from "cn";
+import type * as React from "react";
 
-import { cn } from "~/lib/utils";
-
-function HoverCard({
-  ...props
-}: React.ComponentProps<typeof HoverCardPrimitive.Root>): React.ReactElement {
-  return <HoverCardPrimitive.Root data-slot="hover-card" {...props} />;
+function HoverCard({ ...props }: PreviewCardPrimitive.Root.Props): React.ReactElement {
+  return <PreviewCardPrimitive.Root data-slot="hover-card" {...props} />;
 }
 
-function HoverCardTrigger({
-  ...props
-}: React.ComponentProps<typeof HoverCardPrimitive.Trigger>): React.ReactElement {
-  return <HoverCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />;
+function HoverCardTrigger({ ...props }: PreviewCardPrimitive.Trigger.Props): React.ReactElement {
+  return <PreviewCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />;
 }
 
-const HoverCardContent = React.forwardRef<
-  React.ElementRef<typeof HoverCardPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content>
->(({ className, align = "center", sideOffset = 8, ...props }, ref) => (
-  <HoverCardPrimitive.Portal>
-    <HoverCardPrimitive.Content
-      ref={ref}
-      data-slot="hover-card-content"
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 w-80 rounded-xl border-0 bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-stone-200/80 outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 dark:ring-zinc-800/80",
-        className,
-      )}
-      {...props}
-    />
-  </HoverCardPrimitive.Portal>
-));
-HoverCardContent.displayName = "HoverCardContent";
+function HoverCardContent({
+  className,
+  side = "bottom",
+  sideOffset = 4,
+  align = "center",
+  alignOffset = 4,
+  ...props
+}: PreviewCardPrimitive.Popup.Props &
+  Pick<
+    PreviewCardPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "side" | "sideOffset"
+  >): React.ReactElement {
+  return (
+    <PreviewCardPrimitive.Portal data-slot="hover-card-portal">
+      <PreviewCardPrimitive.Positioner
+        align={align}
+        alignOffset={alignOffset}
+        side={side}
+        sideOffset={sideOffset}
+        className="isolate z-50"
+      >
+        <PreviewCardPrimitive.Popup
+          data-slot="hover-card-content"
+          className={cn(
+            "z-50 w-64 origin-(--transform-origin) rounded-lg bg-popover p-2.5 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            className,
+          )}
+          {...props}
+        />
+      </PreviewCardPrimitive.Positioner>
+    </PreviewCardPrimitive.Portal>
+  );
+}
 
 export { HoverCard, HoverCardTrigger, HoverCardContent };

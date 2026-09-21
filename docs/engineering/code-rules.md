@@ -82,7 +82,7 @@ For the installed API, inspect `node_modules/better-result/README.md`, `dist/ind
 
 - Read [React Router](./react-router.md) before routing, navigation, query, or mutation work.
 - Read the [design guide](../design/design.md) before UI work.
-- Use React Router for route identity and navigation, TanStack Query through tRPC for server state, Radix primitives for accessible behavior, and Tailwind for styling.
+- Use React Router for route identity and navigation, TanStack Query through tRPC for server state, shadcn components on Base UI for accessible behavior, and Tailwind CSS v4 for styling.
 - Use functional React components with typed props and explicit return types.
 - Prefer composition over prop drilling and configuration-heavy components.
 - Do not introduce another router, server-state cache, component system, or styling system.

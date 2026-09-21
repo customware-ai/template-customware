@@ -1,14 +1,12 @@
-"use client";
-
-import * as React from "react";
-
-import { cn } from "~/lib/utils";
+import { cn } from "cn";
+import type * as React from "react";
 
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">): React.ReactElement {
   return (
     <kbd
+      data-slot="kbd"
       className={cn(
-        "inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-border bg-muted px-1.5 text-[11px] font-medium text-muted-foreground",
+        "pointer-events-none inline-flex h-5 w-fit min-w-5 items-center justify-center gap-1 rounded-sm bg-muted px-1 font-sans text-xs font-medium text-muted-foreground select-none in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 [&_svg:not([class*='size-'])]:size-3",
         className,
       )}
       {...props}
@@ -16,8 +14,14 @@ function Kbd({ className, ...props }: React.ComponentProps<"kbd">): React.ReactE
   );
 }
 
-function KbdGroup({ className, ...props }: React.ComponentProps<"span">): React.ReactElement {
-  return <span className={cn("inline-flex items-center gap-1", className)} {...props} />;
+function KbdGroup({ className, ...props }: React.ComponentProps<"div">): React.ReactElement {
+  return (
+    <kbd
+      data-slot="kbd-group"
+      className={cn("inline-flex items-center gap-1", className)}
+      {...props}
+    />
+  );
 }
 
 export { Kbd, KbdGroup };

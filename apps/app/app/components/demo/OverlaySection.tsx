@@ -90,8 +90,8 @@ export function OverlaySection({ onOpenCommand }: { onOpenCommand: () => void })
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">Dropdown</Button>
+                <DropdownMenuTrigger render={<Button variant="outline" />}>
+                  Dropdown
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
@@ -151,9 +151,7 @@ export function OverlaySection({ onOpenCommand }: { onOpenCommand: () => void })
         >
           <div className="flex flex-wrap gap-2">
             <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">Dialog</Button>
-              </DialogTrigger>
+              <DialogTrigger render={<Button variant="outline" />}>Dialog</DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Publish updates</DialogTitle>
@@ -168,9 +166,7 @@ export function OverlaySection({ onOpenCommand }: { onOpenCommand: () => void })
               </DialogContent>
             </Dialog>
             <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline">Sheet</Button>
-              </SheetTrigger>
+              <SheetTrigger render={<Button variant="outline" />}>Sheet</SheetTrigger>
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>Workspace panel</SheetTitle>
@@ -179,25 +175,21 @@ export function OverlaySection({ onOpenCommand }: { onOpenCommand: () => void })
               </SheetContent>
             </Sheet>
             <Drawer>
-              <DrawerTrigger asChild>
-                <Button variant="outline">Drawer</Button>
-              </DrawerTrigger>
+              <DrawerTrigger render={<Button variant="outline" />}>Drawer</DrawerTrigger>
               <DrawerContent>
                 <DrawerHeader>
                   <DrawerTitle>Mobile-ready actions</DrawerTitle>
-                  <DrawerDescription>Vaul-based drawer for touch-first flows.</DrawerDescription>
+                  <DrawerDescription>Base UI drawer for touch-first flows.</DrawerDescription>
                 </DrawerHeader>
                 <DrawerFooter>
                   <Button>Continue</Button>
-                  <DrawerClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DrawerClose>
+                  <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
                 </DrawerFooter>
               </DrawerContent>
             </Drawer>
             <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline">Alert Dialog</Button>
+              <AlertDialogTrigger render={<Button variant="outline" />}>
+                Alert Dialog
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -222,15 +214,11 @@ export function OverlaySection({ onOpenCommand }: { onOpenCommand: () => void })
               Command Palette
             </Button>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline">Tooltip</Button>
-              </TooltipTrigger>
+              <TooltipTrigger render={<Button variant="outline" />}>Tooltip</TooltipTrigger>
               <TooltipContent>Hover-only hint</TooltipContent>
             </Tooltip>
             <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button variant="outline">Hover Card</Button>
-              </HoverCardTrigger>
+              <HoverCardTrigger render={<Button variant="outline" />}>Hover Card</HoverCardTrigger>
               <HoverCardContent>
                 <div className="space-y-1">
                   <div className="font-medium">Northwind Health</div>

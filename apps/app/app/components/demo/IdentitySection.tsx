@@ -2,7 +2,6 @@
 
 import { SparklesIcon } from "lucide-react";
 import { type ReactElement } from "react";
-import { toast as sonnerToast } from "sonner";
 
 import { Section, ShowcaseCard } from "~/components/demo/shared";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
@@ -26,6 +25,7 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import { Separator } from "~/components/ui/separator";
+import { toast } from "~/components/ui/toast";
 
 export function IdentitySection(): ReactElement {
   return (
@@ -103,8 +103,10 @@ export function IdentitySection(): ReactElement {
                 <Button
                   size="sm"
                   onClick={(): void => {
-                    sonnerToast.success("Block added", {
+                    toast.add({
+                      title: "Block added",
                       description: "Sample empty-state action is wired for QA.",
+                      type: "success",
                     });
                   }}
                 >
@@ -114,8 +116,10 @@ export function IdentitySection(): ReactElement {
                   size="sm"
                   variant="outline"
                   onClick={(): void => {
-                    sonnerToast.success("Sample imported", {
+                    toast.add({
+                      title: "Sample imported",
                       description: "The empty-state secondary action is interactive too.",
+                      type: "success",
                     });
                   }}
                 >

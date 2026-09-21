@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy, Suspense, type ReactElement, useState } from "react";
-import { toast as sonnerToast } from "sonner";
 
 import {
   CommandDialog,
@@ -11,9 +10,8 @@ import {
   CommandItem,
   CommandList,
 } from "~/components/ui/command";
-import { ToastAction } from "~/components/ui/toast";
+import { toast } from "~/components/ui/toast";
 import { TooltipProvider } from "~/components/ui/tooltip";
-import { toast as legacyToast } from "~/hooks/use-toast";
 
 // Demo sections are intentionally lazy imported. Any component file or external
 // package that can plausibly add 50 kB+ should stay behind an import() boundary.
@@ -25,6 +23,11 @@ const ActionsSection = lazy(() =>
 const FeedbackSection = lazy(() =>
   import("~/components/demo/FeedbackSection").then((module) => ({
     default: module.FeedbackSection,
+  })),
+);
+const CommunicationSection = lazy(() =>
+  import("~/components/demo/CommunicationSection").then((module) => ({
+    default: module.CommunicationSection,
   })),
 );
 const HeroSection = lazy(() =>
@@ -61,16 +64,18 @@ export default function Demo(): ReactElement {
         <Suspense fallback={null}>
           <HeroSection
             onOpenCommand={(): void => setCommandOpen(true)}
-            onTriggerSonner={(): void => {
-              sonnerToast.success("Sonner notification", {
+            onTriggerToast={(): void => {
+              toast.add({
+                title: "Base UI notification",
                 description: "Global toast wiring is active.",
+                type: "success",
               });
             }}
-            onTriggerLegacyToast={(): void => {
-              legacyToast({
-                title: "Legacy toast",
-                description: "Hook-based Radix toast is still mounted.",
-                action: <ToastAction altText="Dismiss">Undo</ToastAction>,
+            onTriggerActionToast={(): void => {
+              toast.add({
+                title: "Action available",
+                description: "The generated toast supports an optional action.",
+                actionProps: { children: "Undo" },
               });
             }}
           />
@@ -88,6 +93,7 @@ export default function Demo(): ReactElement {
           <OverlaySection onOpenCommand={(): void => setCommandOpen(true)} />
           <LayoutSection />
           <FeedbackSection dateValue={dateValue} setDateValue={setDateValue} />
+          <CommunicationSection />
         </Suspense>
       </div>
 

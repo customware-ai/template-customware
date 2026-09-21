@@ -37,7 +37,7 @@ When using an installed package, verify unfamiliar or uncertain behavior from th
 
 ## Project Structure & Module Organization
 
-- `apps/app/` – React 19 SPA using React Router, TanStack Query, Radix primitives, and Tailwind. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.
+- `apps/app/` – React 19 SPA using React Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.
 - `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `build/server/start.js`.
 - `packages/shared/` – Source-level values and contracts genuinely consumed by both applications. Shared packages must not import app or API modules.
 - `tests/` – Existing unit, integration, and isolated Playwright infrastructure. The autonomous task workflow decides what verification a task requires.

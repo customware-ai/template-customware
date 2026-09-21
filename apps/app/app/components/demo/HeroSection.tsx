@@ -9,12 +9,12 @@ type ApiStatus = "checking" | "connected" | "unavailable";
 
 export function HeroSection({
   onOpenCommand,
-  onTriggerSonner,
-  onTriggerLegacyToast,
+  onTriggerToast,
+  onTriggerActionToast,
 }: {
   onOpenCommand: () => void;
-  onTriggerSonner: () => void;
-  onTriggerLegacyToast: () => void;
+  onTriggerToast: () => void;
+  onTriggerActionToast: () => void;
 }): ReactElement {
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
 
@@ -51,7 +51,7 @@ export function HeroSection({
                 : "API unavailable"}
           </span>
           <span className="hidden text-border sm:inline">/</span>
-          <span>Radix aggregate package</span>
+          <span>Base UI primitives</span>
           <span className="hidden text-border sm:inline">/</span>
           <span>Interactive QA target</span>
         </div>
@@ -59,11 +59,11 @@ export function HeroSection({
           <Button variant="outline" onClick={onOpenCommand}>
             Open Command
           </Button>
-          <Button variant="outline" onClick={onTriggerSonner}>
-            Trigger Sonner
+          <Button variant="outline" onClick={onTriggerToast}>
+            Trigger Toast
           </Button>
-          <Button variant="outline" onClick={onTriggerLegacyToast}>
-            Trigger Legacy Toast
+          <Button variant="outline" onClick={onTriggerActionToast}>
+            Trigger Action Toast
           </Button>
         </div>
       </div>

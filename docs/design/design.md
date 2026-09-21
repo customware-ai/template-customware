@@ -4,8 +4,9 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 
 ## Design System
 
-- Use the existing shadcn-style components under `apps/app/app/components/ui`.
-- Components use Radix primitives for accessible behavior and Tailwind CSS v4 for styling.
+- Use the shadcn components under `apps/app/app/components/ui`, generated with the Base Nova style.
+- Components use Base UI primitives for accessible behavior and Tailwind CSS v4 for styling.
+- Add or refresh components with the shadcn CLI so `components.json`, dependencies, and CSS stay aligned; do not hand-port components from an older Radix registry.
 - Reuse the existing CSS variables, component variants, spacing, and typography before adding local values.
 - Use composition over configuration and keep one-use page composition with its owning route.
 - Keep props typed and preserve the existing light and dark themes.

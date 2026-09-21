@@ -6,8 +6,15 @@ import { type Dispatch, type ReactElement, type SetStateAction } from "react";
 import { ShowcaseCard } from "~/components/demo/shared";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Combobox } from "~/components/ui/combobox";
-import { DatePicker } from "~/components/ui/date-picker";
+import { Calendar } from "~/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "~/components/ui/combobox";
 import {
   Field,
   FieldContent,
@@ -38,7 +45,25 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Select } from "~/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
+const options = [
+  { label: "Proposal", value: "proposal" },
+  { label: "Review", value: "review" },
+  { label: "Approved", value: "approved" },
+];
+
+const teams = [
+  { label: "Operations", value: "ops" },
+  { label: "Finance", value: "finance" },
+  { label: "Executive", value: "executive" },
+];
 
 export function ActionsPickerDetailsDemo({
   dateValue,
@@ -58,28 +83,43 @@ export function ActionsPickerDetailsDemo({
         description="Decision controls built on the shared primitives."
       >
         <div className="space-y-4">
-          <Select
-            value="ops"
-            options={[
-              { label: "Operations", value: "ops" },
-              { label: "Finance", value: "finance" },
-              { label: "Executive", value: "executive" },
-            ]}
-          />
+          <Select defaultValue="ops" items={teams}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ops">Operations</SelectItem>
+              <SelectItem value="finance">Finance</SelectItem>
+              <SelectItem value="executive">Executive</SelectItem>
+            </SelectContent>
+          </Select>
           <Combobox
+            items={options}
             value={comboboxValue}
-            onChange={setComboboxValue}
-            options={[
-              { label: "Proposal", value: "proposal" },
-              { label: "Review", value: "review" },
-              { label: "Approved", value: "approved" },
-            ]}
-          />
-          <DatePicker value={dateValue} onChange={setDateValue} />
+            onValueChange={(value): void => setComboboxValue(value ?? "")}
+          >
+            <ComboboxInput placeholder="Select a stage" />
+            <ComboboxContent>
+              <ComboboxEmpty>No stage found.</ComboboxEmpty>
+              <ComboboxList>
+                {options.map((option) => (
+                  <ComboboxItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ComboboxItem>
+                ))}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
           <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">Popover</Button>
+            <PopoverTrigger render={<Button variant="outline" />}>
+              {dateValue?.toLocaleDateString() ?? "Pick a date"}
             </PopoverTrigger>
+            <PopoverContent>
+              <Calendar mode="single" selected={dateValue} onSelect={setDateValue} />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger render={<Button variant="outline" />}>Popover</PopoverTrigger>
             <PopoverContent>
               <PopoverHeader>
                 <PopoverTitle>Context panel</PopoverTitle>
