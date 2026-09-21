@@ -54,6 +54,20 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Return display-ready rows from the query boundary. Never hydrate records or perform authorization, lock, or relationship lookups once per returned row; join or batch that work instead.
 - Inspect generated SQL and query plans when query cost or index use is uncertain.
 
+Prefer one joined or batched query over per-row work:
+
+```ts
+// Good: the database returns the display shape in one bounded operation.
+const rows = await db
+  .select({ taskId: tasks.id, title: tasks.title, assigneeName: users.name })
+  .from(tasks)
+  .leftJoin(users, eq(tasks.assigneeId, users.id))
+  .where(and(eq(tasks.projectId, projectId), eq(tasks.status, "open")))
+  .limit(pageSize + 1);
+
+// Avoid: list tasks, then query the assignee once for every task.
+```
+
 ## Pagination and Bounded Reads
 
 - Every collection that can grow without a small hard product limit must be paginated or otherwise bounded.
@@ -65,6 +79,26 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Do not calculate an expensive total count unless the product actually displays or requires it.
 - Pagination must not skip or duplicate records under ordinary inserts or updates for the chosen consistency model.
 
+A cursor must mirror the complete deterministic ordering:
+
+```ts
+const afterCursor = cursor
+  ? or(
+      gt(records.createdAt, cursor.createdAt),
+      and(eq(records.createdAt, cursor.createdAt), gt(records.id, cursor.id)),
+    )
+  : undefined;
+
+const rows = await db
+  .select()
+  .from(records)
+  .where(and(scopeFilter, afterCursor))
+  .orderBy(asc(records.createdAt), asc(records.id))
+  .limit(pageSize + 1);
+```
+
+Return at most `pageSize` rows. Use the extra row only to determine whether a next cursor exists.
+
 ## Transactions and Concurrency
 
 - Put changes that must succeed or fail together in one database transaction.
@@ -73,6 +107,20 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Protect read-modify-write flows from lost updates with an atomic statement, transaction, version field, or another explicit concurrency strategy.
 - Make retried write operations idempotent when duplicate execution is possible. Persist an idempotency key when process memory cannot provide that guarantee.
 - Define ownership for background work, locks, leases, and cleanup. Never rely on an in-memory flag for durable exclusivity.
+
+Keep one atomic business change inside its owning transaction:
+
+```ts
+const result = database.transaction((tx) => {
+  const order = tx.insert(orders).values(orderInput).returning().get();
+  tx.insert(orderItems)
+    .values(items.map((item) => ({ ...item, orderId: order.id })))
+    .run();
+  return order;
+});
+```
+
+Network calls and other retryable IO stay outside the transaction.
 
 ## API and State Contracts
 
@@ -93,6 +141,39 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Preserve usable cached data during background refetches and page changes, using placeholder data when continuity is correct. Show an initial loader only when no usable data exists.
 - For predictable mutations, cancel affected queries, snapshot and optimistically update their cached data, roll back on failure, then reconcile with the authoritative response and invalidate only affected query keys.
 - Use tRPC's integration for cancellation rather than adding parallel request plumbing. Abort work that is no longer useful, but allow useful prefetches to finish populating the cache.
+
+Use an infinite query when the server returns a cursor:
+
+```tsx
+const input = { projectId, limit: 25 };
+const tasks = trpc.tasks.list.useInfiniteQuery(input, {
+  getNextPageParam: (page) => page.nextCursor ?? undefined,
+  staleTime: 30_000,
+});
+
+const visibleTasks = tasks.data?.pages.flatMap((page) => page.items) ?? [];
+```
+
+For predictable changes, update the cache optimistically and keep a rollback snapshot:
+
+```tsx
+const utils = trpc.useUtils();
+const updateTask = trpc.tasks.update.useMutation({
+  onMutate: async (change) => {
+    await utils.tasks.list.cancel(input);
+    const previous = utils.tasks.list.getInfiniteData(input);
+    utils.tasks.list.setInfiniteData(input, (current) => applyTaskChange(current, change));
+    return { previous };
+  },
+  onError: (_error, _change, context) => {
+    utils.tasks.list.setInfiniteData(input, context?.previous);
+  },
+  onSuccess: (savedTask) => {
+    utils.tasks.list.setInfiniteData(input, (current) => reconcileTask(current, savedTask));
+  },
+  onSettled: () => utils.tasks.list.invalidate(input),
+});
+```
 
 ## Migrations and Data Evolution
 

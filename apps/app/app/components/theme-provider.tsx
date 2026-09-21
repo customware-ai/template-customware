@@ -9,7 +9,7 @@ import * as React from "react";
  */
 const THEME_STORAGE_KEY = "ui-theme";
 
-type ThemeMode = "dark" | "light" | "system";
+export type ThemeMode = "dark" | "light" | "system";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -22,12 +22,7 @@ interface ThemeProviderState {
   setTheme: (theme: ThemeMode) => void;
 }
 
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => undefined,
-};
-
-const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = React.createContext<ThemeProviderState | undefined>(undefined);
 
 function toError(cause: unknown): Error {
   return cause instanceof Error ? cause : new Error(String(cause));
@@ -81,13 +76,10 @@ export function ThemeProvider({
 
   const setTheme = React.useCallback(
     (nextTheme: ThemeMode): void => {
-      const persisted = Result.try({
+      void Result.try({
         try: () => window.localStorage.setItem(storageKey, nextTheme),
         catch: toError,
       });
-      if (persisted.isErr()) {
-        return;
-      }
 
       setThemeState(nextTheme);
     },

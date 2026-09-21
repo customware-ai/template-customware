@@ -32,25 +32,18 @@ const defaultLoggerOptions: Required<Pick<ErrorLoggerOptions, "endpoint">> = {
   endpoint: "/logs",
 };
 
-let attachCount = 0;
-let windowErrorHandler: ((event: ErrorEvent) => void) | null = null;
-let documentErrorHandler: ((event: ErrorEvent) => void) | null = null;
-let rejectionHandler: ((event: PromiseRejectionEvent) => void) | null = null;
-
-function normalizeErrorContext(
-  event: ErrorEvent,
-  eventType: ErrorContext["eventType"],
-): ErrorContext {
+function normalizeErrorContext(event: Event, eventType: ErrorContext["eventType"]): ErrorContext {
   const eventTarget = event.target;
   const targetNodeName = eventTarget instanceof Element ? eventTarget.nodeName : undefined;
+  const errorEvent = event instanceof ErrorEvent ? event : undefined;
 
   return {
     eventType,
-    filename: event.filename,
-    line: event.lineno,
-    column: event.colno,
+    filename: errorEvent?.filename,
+    line: errorEvent?.lineno,
+    column: errorEvent?.colno,
     target: targetNodeName,
-    stack: event.error?.stack,
+    stack: errorEvent?.error instanceof Error ? errorEvent.error.stack : undefined,
   };
 }
 
@@ -154,7 +147,7 @@ export function logFrontendError(
  * Returns a cleanup function for predictable listener lifecycle.
  */
 export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = {}): () => void {
-  if (typeof window === "undefined" || typeof document === "undefined") {
+  if (typeof window === "undefined") {
     return () => {};
   }
 
@@ -163,38 +156,12 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
     fetchImpl: options.fetchImpl ?? window.fetch,
   };
 
-  attachCount += 1;
-  if (windowErrorHandler !== null && documentErrorHandler !== null) {
-    const trackedWindowHandler = windowErrorHandler;
-    const trackedDocumentHandler = documentErrorHandler;
-
-    return () => {
-      attachCount -= 1;
-      if (attachCount > 0) {
-        return;
-      }
-
-      if (trackedWindowHandler !== null) {
-        window.removeEventListener("error", trackedWindowHandler);
-      }
-
-      if (trackedDocumentHandler !== null) {
-        document.removeEventListener("error", trackedDocumentHandler, true);
-      }
-
-      if (rejectionHandler !== null) {
-        window.removeEventListener("unhandledrejection", rejectionHandler);
-      }
-
-      windowErrorHandler = null;
-      documentErrorHandler = null;
-      rejectionHandler = null;
-    };
-  }
-
-  windowErrorHandler = (event: ErrorEvent): void => {
-    const context = normalizeErrorContext(event, "window-error");
-    const message = event.message || `Window error: ${context.filename ?? "unknown source"}`;
+  const errorHandler = (event: Event): void => {
+    const isScriptError = event instanceof ErrorEvent;
+    const context = normalizeErrorContext(event, isScriptError ? "window-error" : "document-error");
+    const message = isScriptError
+      ? event.message || `Window error: ${context.filename ?? "unknown source"}`
+      : `Document error: ${context.target ?? "unknown target"}`;
     dispatchFrontendLog(
       buildLogPayload(message, context),
       finalOptions.fetchImpl,
@@ -202,21 +169,7 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
     );
   };
 
-  documentErrorHandler = (event: ErrorEvent): void => {
-    if (event.target === window) {
-      return;
-    }
-
-    const context = normalizeErrorContext(event, "document-error");
-    const message = event.message || `Document error: ${context.target ?? "unknown target"}`;
-    dispatchFrontendLog(
-      buildLogPayload(message, context),
-      finalOptions.fetchImpl,
-      finalOptions.endpoint,
-    );
-  };
-
-  rejectionHandler = (event: PromiseRejectionEvent): void => {
+  const rejectionHandler = (event: PromiseRejectionEvent): void => {
     const context = normalizeRejectionContext(event.reason);
     const message =
       event.reason instanceof Error
@@ -230,31 +183,13 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
     );
   };
 
-  if (windowErrorHandler !== null && documentErrorHandler !== null && rejectionHandler !== null) {
-    window.addEventListener("error", windowErrorHandler);
-    document.addEventListener("error", documentErrorHandler, true);
-    window.addEventListener("unhandledrejection", rejectionHandler);
-  }
+  // Capture handles both script errors and resource-load failures without a
+  // duplicate document listener.
+  window.addEventListener("error", errorHandler, true);
+  window.addEventListener("unhandledrejection", rejectionHandler);
 
   return () => {
-    attachCount -= 1;
-    if (attachCount > 0) {
-      return;
-    }
-
-    if (windowErrorHandler !== null) {
-      window.removeEventListener("error", windowErrorHandler);
-    }
-
-    if (documentErrorHandler !== null) {
-      document.removeEventListener("error", documentErrorHandler, true);
-    }
-
-    if (rejectionHandler !== null) {
-      window.removeEventListener("unhandledrejection", rejectionHandler);
-    }
-    windowErrorHandler = null;
-    documentErrorHandler = null;
-    rejectionHandler = null;
+    window.removeEventListener("error", errorHandler, true);
+    window.removeEventListener("unhandledrejection", rejectionHandler);
   };
 }

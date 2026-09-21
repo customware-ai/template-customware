@@ -6,7 +6,7 @@
 
 The current template defines a shared layout with one index route. Follow the complete [React Router guide](../engineering/react-router.md) when adding layouts, routes, navigation, queries, or mutations.
 
-The application runs in SPA mode. Hono serves `build/client/index.html` for unmatched browser routes after API and static-file handling. Missing `/assets` paths and extension-bearing file paths return `404` instead of falling through to browser HTML.
+The application runs in SPA mode. Hono serves `build/client/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
 
 ## API Endpoints
 
@@ -22,6 +22,8 @@ The client Vite build emits fast Brotli sidecars for bundled text assets. Hono s
 Hono applies its standard secure response headers. The browser and API use the same origin in development through the Vite proxy and in production through the combined server, so the API does not expose unrestricted CORS. Process shutdown stops the HTTP server before closing SQLite so active requests can finish cleanly.
 
 Add domain procedures to the tRPC router and keep Hono-specific endpoints for transport concerns that do not belong in tRPC.
+
+The sample `listEstimates` procedure returns bounded cursor pages ordered by estimate number and row ID. Its input accepts a maximum page size of 100 and its output contains `items` plus `nextCursor`. `createEstimate` returns the authoritative created row so the browser can reconcile affected query caches.
 
 ## Route Ordering
 

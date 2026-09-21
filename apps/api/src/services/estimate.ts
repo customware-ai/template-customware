@@ -2,10 +2,12 @@ import { Result } from "better-result";
 import { ZodError } from "zod";
 
 import {
+  EstimatePageSchema,
   EstimateSchema,
   type CreateEstimateInput,
   type Estimate,
-  type ListEstimatesFilter,
+  type EstimatePage,
+  type ListEstimatesInput,
 } from "../contracts/estimate.js";
 import { createEstimateRow, listEstimateRows } from "../db/queries/estimates.js";
 import type { AppError, ValidationError } from "../types/errors.js";
@@ -38,12 +40,16 @@ function validationIssues(cause: unknown, fallback: string): string[] {
  * This is sample list behavior, not a product-specific decision.
  */
 export async function listEstimates(
-  filters: ListEstimatesFilter,
-): Promise<Result<Estimate[], AppError>> {
+  input: ListEstimatesInput,
+): Promise<Result<EstimatePage, AppError>> {
   return Result.gen(async function* () {
-    const rows = yield* Result.await(listEstimateRows(filters));
-    const estimates = yield* Result.try({
-      try: () => rows.map((row) => EstimateSchema.parse(row)),
+    const page = yield* Result.await(listEstimateRows(input));
+    const parsedPage = yield* Result.try({
+      try: () =>
+        EstimatePageSchema.parse({
+          items: page.rows.map((row) => EstimateSchema.parse(row)),
+          nextCursor: page.nextCursor,
+        }),
       catch: (cause) =>
         validationError(
           "Failed to parse estimate rows",
@@ -51,7 +57,7 @@ export async function listEstimates(
         ),
     });
 
-    return Result.ok(estimates);
+    return Result.ok(parsedPage);
   });
 }
 

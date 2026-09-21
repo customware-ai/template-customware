@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "exports": {
+    "./trpc": "./src/trpc/router.ts"
+  },
   "scripts": {
     "dev": "cd ../.. && tsx watch apps/api/src/start.ts",
     "type-check": "tsc --noEmit --project tsconfig.json"

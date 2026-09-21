@@ -34,11 +34,6 @@ import { appRouter } from "./trpc/router.js";
 const CLIENT_DIR = path.resolve(process.cwd(), "build", "client");
 const SHORT_STATIC_CACHE = "max-age=120";
 const IMMUTABLE_ASSET_CACHE = "public, max-age=31536000, immutable";
-const INDEX_HTML_CONTENT_TYPE = "text/html; charset=UTF-8";
-
-function acceptsBrotli(acceptEncoding: string | undefined): boolean {
-  return acceptEncoding?.split(",").some((encoding) => encoding.trim() === "br") ?? false;
-}
 
 function getStaticCacheControl(filePath: string): string {
   const normalizedPath = filePath.split(path.sep).join("/");
@@ -50,12 +45,11 @@ function getStaticCacheControl(filePath: string): string {
   return SHORT_STATIC_CACHE;
 }
 
-function isStaticAssetPath(requestPath: string): boolean {
-  const lastSegment = requestPath.split("/").at(-1) ?? "";
+function acceptsHtml(acceptHeader: string | undefined): boolean {
   return (
-    requestPath === "/assets" ||
-    requestPath.startsWith("/assets/") ||
-    path.extname(lastSegment).length > 0
+    acceptHeader
+      ?.split(",")
+      .some((value) => value.split(";", 1)[0]?.trim().toLowerCase() === "text/html") ?? false
   );
 }
 
@@ -220,7 +214,7 @@ app.notFound((c) => {
  * This allows React Router to handle client-side navigation
  */
 app.get("*", (c) => {
-  if (isStaticAssetPath(c.req.path)) {
+  if (!acceptsHtml(c.req.header("Accept"))) {
     return c.notFound();
   }
 
@@ -231,19 +225,6 @@ app.get("*", (c) => {
   }
 
   c.header("Cache-Control", SHORT_STATIC_CACHE);
-  const brotliIndexPath = `${indexPath}.br`;
-  if (acceptsBrotli(c.req.header("Accept-Encoding")) && fs.existsSync(brotliIndexPath)) {
-    const compressedHtml = Result.try(() => fs.readFileSync(brotliIndexPath));
-    if (compressedHtml.isErr()) {
-      return c.text("Unable to read the application entry point.", 500);
-    }
-
-    c.header("Content-Type", INDEX_HTML_CONTENT_TYPE);
-    c.header("Content-Encoding", "br");
-    c.header("Vary", "Accept-Encoding", { append: true });
-    return c.body(compressedHtml.value);
-  }
-
   const html = Result.try(() => fs.readFileSync(indexPath, "utf-8"));
   return html.match({
     ok: (content) => c.html(content),

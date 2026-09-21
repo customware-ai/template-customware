@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { Result } from "better-result";
 
-import { seedE2EData } from "./seed";
+import { seedE2EData } from "./seed.js";
 
 /**
  * Fixed sqlite database path shared by Playwright setup, helpers, and the

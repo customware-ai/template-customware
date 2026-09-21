@@ -30,6 +30,12 @@ const CommunicationSection = lazy(() =>
     default: module.CommunicationSection,
   })),
 );
+// Keep the optional server-state reference surface split from the demo shell.
+const DataSection = lazy(() =>
+  import("~/components/demo/DataSection").then((module) => ({
+    default: module.DataSection,
+  })),
+);
 const HeroSection = lazy(() =>
   import("~/components/demo/HeroSection").then((module) => ({
     default: module.HeroSection,
@@ -79,6 +85,7 @@ export default function Demo(): ReactElement {
               });
             }}
           />
+          <DataSection />
           <IdentitySection />
           <ActionsSection
             dateValue={dateValue}

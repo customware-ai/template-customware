@@ -14,6 +14,8 @@ This is not an upgrade guide: the repository already uses React Router 8. The co
 
 `apps/app/react-router.config.ts` sets `ssr: false`, so this remains a browser-rendered SPA. Framework Mode does not imply server rendering.
 
+`apps/app/app/components/app-providers.tsx` owns the single TanStack Query and tRPC clients. `apps/app/app/lib/trpc.ts` creates the typed hooks from the API package's public router type, and `root.tsx` mounts those providers once for the browser runtime. The type-only API import is erased from the client build; browser code must never import server implementation values.
+
 ## Current v8 Behavior
 
 These are current repository constraints, not migration instructions. Framework and browser APIs come from `react-router`; React Router 8 does not use the `react-router-dom` compatibility package, is ESM-only, and targets ES2022. Import shared APIs from `react-router` and a DOM-only API from `react-router/dom` when necessary.
@@ -28,6 +30,7 @@ Version 8 also makes its former future flags standard behavior. Middleware, spli
 - Use `Link` or `NavLink` for user navigation and `useNavigate` for navigation caused by application logic.
 - Use the installed `@trpc/react-query` hooks for API work: `useQuery` for bounded reads, `useInfiniteQuery` for cursor pages, `useMutation` for writes, `useUtils` for cache updates, and prefetch hooks for likely navigation.
 - Let TanStack Query own server-state caching, background refresh, pagination, optimistic updates, and invalidation. Do not mirror its data into component state or introduce React Router loaders, actions, or manual fetch-and-refresh flows as a second server-state system.
+- Use `apps/app/app/components/demo/DataSection.tsx` as the live reference for a typed cursor query, mutation, focused invalidation, loading, empty, error, and pagination states.
 - Keep `ssr: false` unless the rendering architecture is deliberately changed.
 - Run `pnpm check` after changing routes so route types are regenerated.
 

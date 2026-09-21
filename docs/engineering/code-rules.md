@@ -17,7 +17,7 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 
 - Follow [Application Design](./application-design.md) for layer ownership and production feature design.
 - Browser code calls typed client operations; transport calls services; services use contracts and query modules; query modules own persistence.
-- Do not import API or database modules into browser code, bypass query ownership, or let a shared package import either application.
+- Do not import API implementation or database modules into browser code, bypass query ownership, or let a shared package import either application. The browser's type-only import from the API package's public `./trpc` export is the deliberate exception that gives tRPC its end-to-end contract without bundling server code.
 
 ## TypeScript and Contracts
 
@@ -49,6 +49,57 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 - An isolated pre-hydration script cannot import application modules; keep its minimal local fallback handling rather than duplicating BetterResult inside serialized script text.
 - Intentional UI fire-and-forget work may use `void` only at the React or browser callback boundary after the called operation owns its rejection and returns `Promise<Result<...>>`.
 
+### BetterResult Patterns
+
+Parse an owned boundary once and map the thrown library error into a stable application error:
+
+```ts
+const CustomerSchema = z.object({ id: z.string().uuid(), name: z.string().min(1) });
+type Customer = z.infer<typeof CustomerSchema>;
+
+function parseCustomer(input: unknown): Result<Customer, ValidationError> {
+  return Result.try({
+    try: () => CustomerSchema.parse(input),
+    catch: (cause) => ({
+      type: "VALIDATION_ERROR",
+      message: "Customer data is invalid.",
+      issues: cause instanceof z.ZodError ? cause.issues : [],
+    }),
+  });
+}
+```
+
+Bound retries and forward BetterResult's attempt signal to the underlying request:
+
+```ts
+function loadCustomer(
+  signal: AbortSignal,
+): Promise<Result<Customer, RequestError | ValidationError>> {
+  return Result.gen(async function* () {
+    const response = yield* Result.await(
+      Result.tryPromise(
+        {
+          try: ({ signal: attemptSignal }) => fetch("/api/customer", { signal: attemptSignal }),
+          catch: (cause) => new RequestError({ cause }),
+        },
+        {
+          signal,
+          retry: { times: 2, delayMs: 150, backoff: "exponential" },
+        },
+      ),
+    );
+    const input = yield* Result.await(
+      Result.tryPromise({
+        try: () => response.json() as Promise<unknown>,
+        catch: (cause) => new RequestError({ cause }),
+      }),
+    );
+
+    return parseCustomer(input);
+  });
+}
+```
+
 Examples in this repository show the intended patterns:
 
 - `packages/shared/src/index.ts` defines a shared Result type and maps schema failures.
@@ -76,7 +127,20 @@ For the installed API, inspect `node_modules/better-result/README.md`, `dist/ind
 - Never use `oxlint-disable`, weaken lint rules, expand ignore patterns, or change check scripts to hide a diagnostic. Fix its cause.
 - Let Vite+ and Oxfmt own formatting; do not add a competing formatter configuration.
 - Keep dependencies declared by the workspace that imports them. Root dependencies are for root-owned runtime or tooling only.
-- Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Leave a short comment at the lazy boundary explaining why it must remain lazy.
+- Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as Recharts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
+
+```tsx
+// Recharts is large and this chart is not required for first paint.
+const RevenueChart = lazy(() => import("./revenue-chart"));
+
+function AnalyticsPanel(): ReactElement {
+  return (
+    <Suspense fallback={<ChartSkeleton />}>
+      <RevenueChart />
+    </Suspense>
+  );
+}
+```
 
 ## Frontend
 

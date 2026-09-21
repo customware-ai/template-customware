@@ -2,6 +2,7 @@ import { Result } from "better-result";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
+import { DEFAULT_ESTIMATE_PAGE_SIZE } from "../../../apps/api/src/contracts/estimate.js";
 import { getDatabase, resetDatabaseConnection } from "../../../apps/api/src/db/index.js";
 import { estimates } from "../../../apps/api/src/db/schemas.js";
 import { createEstimate, listEstimates } from "../../../apps/api/src/services/estimate.js";
@@ -67,7 +68,7 @@ describe("estimate service", () => {
       total_value: 100,
       margin_percent: 20,
     });
-    const result = await listEstimates({});
+    const result = await listEstimates({ limit: DEFAULT_ESTIMATE_PAGE_SIZE });
 
     expect(result.isErr()).toBe(true);
     if (result.isOk()) {
@@ -99,20 +100,69 @@ describe("estimate service", () => {
       margin_percent: 28,
     });
 
-    const reviewOnly = await listEstimates({ status: "review" });
+    const reviewOnly = await listEstimates({
+      status: "review",
+      limit: DEFAULT_ESTIMATE_PAGE_SIZE,
+    });
     expect(reviewOnly.isOk()).toBe(true);
 
     if (reviewOnly.isErr()) {
       return;
     }
 
-    expect(reviewOnly.value).toHaveLength(1);
-    expect(reviewOnly.value[0]?.estimate_number).toBe("EST-001002");
+    expect(reviewOnly.value.items).toHaveLength(1);
+    expect(reviewOnly.value.items[0]?.estimate_number).toBe("EST-001002");
+    expect(reviewOnly.value.nextCursor).toBeNull();
 
     const db = Result.unwrap(getDatabase(), "Failed to open the test database");
     const rows = await db.select().from(estimates).where(eq(estimates.status, "approved"));
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.estimate_number).toBe("EST-001003");
+  });
+
+  it("returns stable bounded cursor pages", async () => {
+    for (const estimateNumber of ["EST-003", "EST-001", "EST-002", "EST-002"]) {
+      await createEstimate({
+        estimate_number: estimateNumber,
+        account_name: "Cursor account",
+        project_name: estimateNumber,
+        workflow_stage: "Estimate Build",
+        item_count: 1,
+        total_value: 100,
+        margin_percent: 20,
+      });
+    }
+
+    const firstPage = await listEstimates({ limit: 2 });
+    expect(firstPage.isOk()).toBe(true);
+    if (firstPage.isErr()) {
+      return;
+    }
+
+    expect(firstPage.value.items.map((estimate) => estimate.estimate_number)).toEqual([
+      "EST-001",
+      "EST-002",
+    ]);
+    expect(firstPage.value.nextCursor).not.toBeNull();
+
+    const secondPage = await listEstimates({
+      limit: 2,
+      cursor: firstPage.value.nextCursor ?? undefined,
+    });
+    expect(secondPage.isOk()).toBe(true);
+    if (secondPage.isErr()) {
+      return;
+    }
+
+    expect(secondPage.value.items.map((estimate) => estimate.estimate_number)).toEqual([
+      "EST-002",
+      "EST-003",
+    ]);
+    expect(
+      new Set([...firstPage.value.items, ...secondPage.value.items].map((estimate) => estimate.id))
+        .size,
+    ).toBe(4);
+    expect(secondPage.value.nextCursor).toBeNull();
   });
 });

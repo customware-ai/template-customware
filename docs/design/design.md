@@ -8,6 +8,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 - Components use Base UI primitives for accessible behavior and Tailwind CSS v4 for styling.
 - Add or refresh components with the shadcn CLI so `components.json`, dependencies, and CSS stay aligned; do not hand-port components from an older Radix registry.
 - Reuse the existing CSS variables, component variants, spacing, and typography before adding local values.
+- Keep the global color-mode control usable and keyboard accessible. It defaults to the operating system preference and lets the user explicitly choose light, dark, or system mode.
 - Use composition over configuration and keep one-use page composition with its owning route.
 - Keep props typed and preserve the existing light and dark themes.
 
@@ -15,7 +16,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 
 - Never leave a blank area while requested data is unavailable. Render a skeleton or appropriately sized progress state.
 - Use the shared initial loading state for SPA hydration and immediately lazy route content so hydration never hands off to a blank screen.
-- Disable a submitting control and show its pending state. The shared `Button` supports `loading`.
+- Disable a submitting control and show its pending state by composing the shared `Button` and `Spinner` primitives.
 - Do not replace already available cached data with a loading skeleton during a background refresh.
 - Use optimistic UI when the result is predictable and rollback or reconcile it with the authoritative response.
 

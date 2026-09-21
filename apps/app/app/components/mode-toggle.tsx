@@ -3,17 +3,22 @@
 import { Laptop, Moon, Sun } from "lucide-react";
 import type { ReactElement } from "react";
 
-import { useTheme } from "~/components/theme-provider";
+import { useTheme, type ThemeMode } from "~/components/theme-provider";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
+function isThemeMode(value: string): value is ThemeMode {
+  return value === "light" || value === "dark" || value === "system";
+}
+
 export function ModeToggle(): ReactElement {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -25,18 +30,27 @@ export function ModeToggle(): ReactElement {
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={(): void => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={(): void => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={(): void => setTheme("system")}>
-          <Laptop className="mr-2 h-4 w-4" />
-          <span>System</span>
-        </DropdownMenuItem>
+        <DropdownMenuRadioGroup
+          value={theme}
+          onValueChange={(value) => {
+            if (isThemeMode(value)) {
+              setTheme(value);
+            }
+          }}
+        >
+          <DropdownMenuRadioItem value="light">
+            <Sun className="mr-2 h-4 w-4" />
+            <span>Light</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="dark">
+            <Moon className="mr-2 h-4 w-4" />
+            <span>Dark</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="system">
+            <Laptop className="mr-2 h-4 w-4" />
+            <span>System</span>
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

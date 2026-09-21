@@ -1,6 +1,10 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 
-import { CreateEstimateInputSchema, ListEstimatesFilterSchema } from "../contracts/estimate.js";
+import {
+  CreateEstimateInputSchema,
+  DEFAULT_ESTIMATE_PAGE_SIZE,
+  ListEstimatesInputSchema,
+} from "../contracts/estimate.js";
 import { createEstimate, listEstimates } from "../services/estimate.js";
 import type { AppError } from "../types/errors.js";
 
@@ -38,16 +42,14 @@ function toTrpcError(error: AppError): TRPCError {
  * opinion.
  */
 export const appRouter = t.router({
-  listEstimates: t.procedure
-    .input(ListEstimatesFilterSchema.optional())
-    .query(async ({ input }) => {
-      const result = await listEstimates(input ?? {});
-      if (result.isErr()) {
-        throw toTrpcError(result.error);
-      }
+  listEstimates: t.procedure.input(ListEstimatesInputSchema.optional()).query(async ({ input }) => {
+    const result = await listEstimates(input ?? { limit: DEFAULT_ESTIMATE_PAGE_SIZE });
+    if (result.isErr()) {
+      throw toTrpcError(result.error);
+    }
 
-      return result.value;
-    }),
+    return result.value;
+  }),
 
   createEstimate: t.procedure.input(CreateEstimateInputSchema).mutation(async ({ input }) => {
     const result = await createEstimate(input);

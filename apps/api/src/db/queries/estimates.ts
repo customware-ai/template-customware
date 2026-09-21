@@ -1,7 +1,11 @@
 import { Result } from "better-result";
-import { and, asc, eq, like, or, type SQL } from "drizzle-orm";
+import { and, asc, eq, gt, like, or, type SQL } from "drizzle-orm";
 
-import type { CreateEstimateInput, ListEstimatesFilter } from "../../contracts/estimate.js";
+import type {
+  CreateEstimateInput,
+  EstimateCursor,
+  ListEstimatesInput,
+} from "../../contracts/estimate.js";
 import { databaseError, type DatabaseError } from "../../types/errors.js";
 import { getDatabase } from "../index.js";
 import { estimates } from "../schemas.js";
@@ -20,21 +24,26 @@ import { estimates } from "../schemas.js";
  * This is sample query behavior for the example API slice.
  */
 export function listEstimateRows(
-  filters: ListEstimatesFilter,
-): Promise<Result<(typeof estimates.$inferSelect)[], DatabaseError>> {
+  input: ListEstimatesInput,
+): Promise<
+  Result<
+    { rows: (typeof estimates.$inferSelect)[]; nextCursor: EstimateCursor | null },
+    DatabaseError
+  >
+> {
   return Result.gen(async function* () {
     const db = yield* getDatabase();
-    const rows = yield* Result.await(
+    const page = yield* Result.await(
       Result.tryPromise({
         try: async () => {
           const predicates: SQL[] = [];
 
-          if (filters.status) {
-            predicates.push(eq(estimates.status, filters.status));
+          if (input.status) {
+            predicates.push(eq(estimates.status, input.status));
           }
 
-          if (filters.search) {
-            const pattern = `%${filters.search}%`;
+          if (input.search) {
+            const pattern = `%${input.search}%`;
             const searchPredicate = or(
               like(estimates.estimate_number, pattern),
               like(estimates.account_name, pattern),
@@ -46,23 +55,42 @@ export function listEstimateRows(
             }
           }
 
-          if (predicates.length === 0) {
-            return db.select().from(estimates).orderBy(asc(estimates.estimate_number));
+          if (input.cursor) {
+            const afterCursor = or(
+              gt(estimates.estimate_number, input.cursor.estimate_number),
+              and(
+                eq(estimates.estimate_number, input.cursor.estimate_number),
+                gt(estimates.id, input.cursor.id),
+              ),
+            );
+            if (afterCursor) {
+              predicates.push(afterCursor);
+            }
           }
 
-          const whereClause = predicates.length === 1 ? predicates[0] : and(...predicates);
-
-          return db
+          const rows = await db
             .select()
             .from(estimates)
-            .where(whereClause)
-            .orderBy(asc(estimates.estimate_number));
+            .where(predicates.length === 0 ? undefined : and(...predicates))
+            .orderBy(asc(estimates.estimate_number), asc(estimates.id))
+            .limit(input.limit + 1);
+          const hasNextPage = rows.length > input.limit;
+          const visibleRows = hasNextPage ? rows.slice(0, input.limit) : rows;
+          const lastRow = visibleRows.at(-1);
+
+          return {
+            rows: visibleRows,
+            nextCursor:
+              hasNextPage && lastRow
+                ? { estimate_number: lastRow.estimate_number, id: lastRow.id }
+                : null,
+          };
         },
         catch: (error: unknown) => databaseError("Failed to list estimates", error),
       }),
     );
 
-    return Result.ok(rows);
+    return Result.ok(page);
   });
 }
 

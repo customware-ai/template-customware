@@ -15,6 +15,7 @@ import {
 import type { Route } from "./+types/root";
 
 import "./app.css";
+import { AppProviders } from "./components/app-providers";
 import { InitialLoadingState, INITIAL_LOADING_STYLES } from "./components/initial-loading-state";
 import { ThemeProvider } from "./components/theme-provider";
 import { Button } from "./components/ui/button";
@@ -118,7 +119,9 @@ export default function App(): ReactElement {
 
   return (
     <ThemeProvider defaultTheme="system">
-      <Outlet />
+      <AppProviders>
+        <Outlet />
+      </AppProviders>
     </ThemeProvider>
   );
 }

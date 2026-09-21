@@ -2,6 +2,7 @@
 
 import { type ReactElement, useEffect, useState } from "react";
 
+import { ModeToggle } from "~/components/mode-toggle";
 import { Button } from "~/components/ui/button";
 import { fetchHealth } from "~/lib/health";
 
@@ -55,7 +56,8 @@ export function HeroSection({
           <span className="hidden text-border sm:inline">/</span>
           <span>Interactive QA target</span>
         </div>
-        <div className="grid gap-2 sm:grid-cols-3 xl:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
+          <ModeToggle />
           <Button variant="outline" onClick={onOpenCommand}>
             Open Command
           </Button>

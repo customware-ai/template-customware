@@ -1,7 +1,8 @@
 {
   "extends": "../../apps/app/tsconfig.json",
   "compilerOptions": {
+    "composite": false,
     "types": ["vite-plus/test/globals", "@testing-library/jest-dom"]
   },
-  "include": ["./**/*", "../e2e/database.ts", "../../apps/app/app/**/*", "../../apps/api/src/**/*"]
+  "include": ["./**/*"]
 }
