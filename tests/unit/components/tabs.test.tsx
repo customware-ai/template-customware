@@ -22,7 +22,7 @@ describe("Tabs", () => {
     expect(overviewTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Current estimate");
 
-    overviewTab.focus();
+    await user.click(overviewTab);
     await user.keyboard("{ArrowRight}");
 
     const historyTab = screen.getByRole("tab", { name: "History" });
