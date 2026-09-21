@@ -2,7 +2,7 @@
 
 /**
  * REFERENCE UI ONLY.
- * Keep this component available while implementing the first product task, then
+ * Keep this component available while implementing the task, then
  * remove it and `components/demo/` at the very end after the product UI and its
  * documentation have been completed and verified.
  */

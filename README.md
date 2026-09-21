@@ -10,9 +10,9 @@ It includes a React 19 and React Router 8 browser app, a Hono and tRPC API, SQLi
 
 The browser foundation includes TanStack Query, Tailwind CSS v4, and shadcn components on Base UI. The repository also provides typed BetterResult error handling, Zod contracts, runtime diagnostics, database migrations, and Vite+ workspace tooling.
 
-## Remove After the First Product Task Is Done
+## Remove After the Task Is Done
 
-Keep the reference UI available while implementing the first product task. At the very end of that task, make sure:
+Keep the reference UI available while implementing the task. At the very end of the task, make sure:
 
 - The requested product experience is implemented and verified.
 - The relevant documents under `docs/` describe the implemented application.
