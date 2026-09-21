@@ -1,0 +1,61 @@
+{
+  "name": "template-customware",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Full-stack Customware template with a Vite+ monorepo workspace",
+  "type": "module",
+  "scripts": {
+    "dev": "vp run --filter ./apps/api --filter ./apps/app dev",
+    "build:client": "vp run --no-cache --filter ./apps/app build",
+    "build:server": "vp run --no-cache --filter ./apps/api build",
+    "build": "pnpm run build:client && pnpm run build:server",
+    "start": "node --env-file-if-exists=.env build/server/start.js",
+    "start:e2e": "node tests/e2e/server-start.mjs",
+    "lint": "vp lint",
+    "check": "vp run --no-cache --filter ./apps/app typegen && vp check",
+    "format": "vp fmt",
+    "test": "vp test --run --config vitest.config.ts",
+    "prepare:e2e": "tsx tests/e2e/prepare.ts",
+    "e2e": "pnpm run build && playwright test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx apps/api/src/db/migrate.ts",
+    "typecheck": "vp run --filter ./apps/app --filter ./apps/api --filter ./packages/shared type-check",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.1",
+    "@hono/trpc-server": "0.4.2",
+    "@trpc/server": "11.18.0",
+    "better-sqlite3": "12.11.1",
+    "dotenv": "17.4.2",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.13.7",
+    "neverthrow": "8.2.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.4",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "catalog:",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.1.1",
+    "drizzle-kit": "0.31.10",
+    "jsdom": "29.1.1",
+    "playwright": "1.59.1",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-router": "7.18.2",
+    "tsx": "4.23.12",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "packageManager": "pnpm@12.3.1"
+}

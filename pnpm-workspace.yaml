@@ -1,0 +1,32 @@
+packages:
+  - apps/*
+  - packages/*
+
+minimumReleaseAge: 1
+
+catalog:
+  "@types/node": 24.13.3
+  react: 19.2.8
+  react-dom: 19.2.8
+  typescript: 7.0.2
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.3
+  vite-plus: 0.3.3
+
+catalogMode: prefer
+
+overrides:
+  picomatch: 4.0.4
+  vite: "catalog:"
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    oxc-transform-react: 0.150.0
+    typescript: 7.0.2
+    vite: "*"
+
+allowBuilds:
+  better-sqlite3: true
+  core-js: false
+  esbuild: true
