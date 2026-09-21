@@ -28,18 +28,34 @@ export default defineConfig({
     sortImports: {},
   },
   lint: {
-    plugins: ["eslint", "jsx-a11y", "oxc", "typescript"],
+    plugins: ["eslint", "jsx-a11y", "oxc", "react", "react-perf", "typescript"],
+    categories: {
+      correctness: "error",
+    },
+    env: {
+      browser: true,
+      node: true,
+    },
     options: {
       typeAware: true,
       typeCheck: true,
     },
     ignorePatterns: IGNORE_PATTERNS,
+    overrides: [
+      {
+        files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+        rules: {
+          "eslint/max-lines": ["error", { max: 500, skipComments: true }],
+        },
+      },
+    ],
     rules: {
       "oxc/no-barrel-file": "error",
       "no-unassigned-vars": "error",
       "typescript/explicit-function-return-type": "error",
       "typescript/no-explicit-any": "error",
       "typescript/no-floating-promises": "error",
+      "typescript/no-inferrable-types": "off",
       "react/jsx-key": "error",
       "react/no-array-index-key": "warn",
       "react/jsx-no-duplicate-props": "error",
@@ -49,6 +65,9 @@ export default defineConfig({
         attributes: {
           for: ["for", "htmlFor"],
         },
+      },
+      react: {
+        version: "19.0",
       },
     },
   },

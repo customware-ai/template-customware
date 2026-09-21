@@ -5,6 +5,17 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   envDir: resolve(import.meta.dirname, "../.."),
   publicDir: false,
+  run: {
+    tasks: {
+      build: {
+        command: "vp build",
+        dependsOn: ["@template-customware/app#build"],
+        untrackedEnv: ["SHLVL"],
+        input: [{ auto: true }, { pattern: "!build/**", base: "workspace" }],
+        output: [{ pattern: "build/server/**", base: "workspace" }],
+      },
+    },
+  },
   build: {
     ssr: true,
     outDir: "../../build/server",

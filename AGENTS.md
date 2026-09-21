@@ -31,6 +31,10 @@ The following system-admin-owned engineering guidelines are read-only for task a
 
 If a task appears to require changing either protected document, complete the application work without modifying it and report the documentation conflict through the task workflow.
 
+## Installed Dependency References
+
+When using an installed package, verify unfamiliar or uncertain behavior from the installed version instead of guessing its API. Inspect the package under `node_modules/` for its shipped documentation, type declarations, and actual JavaScript source code. These files are the closest reference for how that exact version works in this application; use the package's official documentation when broader explanation is needed.
+
 ## Project Structure & Module Organization
 
 - `apps/app/` – React 19 SPA using React Router, TanStack Query, Radix primitives, and Tailwind. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.

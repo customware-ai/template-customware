@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "cd ../.. && tsx watch apps/api/src/start.ts",
-    "build": "vp build",
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {

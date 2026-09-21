@@ -4,6 +4,22 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  run: {
+    tasks: {
+      build: {
+        command: "react-router build",
+        untrackedEnv: ["SHLVL"],
+        input: [{ auto: true }, "!.react-router/**", { pattern: "!build/**", base: "workspace" }],
+        output: [{ pattern: "build/client/**", base: "workspace" }],
+      },
+      typegen: {
+        command: "react-router typegen",
+        untrackedEnv: ["SHLVL"],
+        input: [{ auto: true }, "!.react-router/**"],
+        output: [".react-router/**"],
+      },
+    },
+  },
   server: {
     proxy: {
       "/health": "http://localhost:8080",

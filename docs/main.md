@@ -4,7 +4,7 @@ Template Customware is the reusable full-stack starting point for Customware pro
 
 ## Implemented Foundation
 
-- React 19 SPA with React Router 7, TanStack Query, Radix primitives, and Tailwind 4
+- React 19 SPA with React Router 8, TanStack Query, Radix primitives, and Tailwind 4
 - Hono API with typed tRPC procedures
 - SQLite persistence with Drizzle migrations
 - pnpm workspaces for `apps/*` and `packages/*`
@@ -44,5 +44,7 @@ Create additional focused documents under `engineering/`, `platform/`, `design/`
 ## Documentation Workflow
 
 Documentation describes the current implementation, not an aspirational system. Task-maintained documents must remove obsolete values, add new behavior, and update changed behavior in the same task.
+
+For dependency behavior, treat the installed version as the source of truth. Inspect its documentation, type declarations, and JavaScript implementation under `node_modules/` rather than guessing unfamiliar APIs, and use the package's official documentation for additional context.
 
 `docs/engineering/code-rules.md` and `docs/engineering/application-design.md` are system-admin-owned and read-only for autonomous task agents. `AGENTS.md` remains the concise operational entry point and links here rather than duplicating detailed guidance.
