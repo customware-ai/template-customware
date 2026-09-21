@@ -2,9 +2,9 @@
 
 This application uses React Router's **Framework Mode** for a client-rendered SPA. React Router owns URLs, route hierarchy, navigation, route modules, and generated route types. tRPC with TanStack Query owns server data.
 
-## From v6 to This Repository
+## Current v8 Repository Model
 
-React Router v6 training commonly assumes a JSX tree built with `BrowserRouter`, `Routes`, and `Route`. Do not add that second routing system here. Framework Mode instead uses:
+This is not an upgrade guide: the repository already uses React Router 8. The comparison exists only because agents may know the older v6 APIs better. React Router v6 training commonly assumes a JSX tree built with `BrowserRouter`, `Routes`, and `Route`; do not add that second routing system here. Framework Mode instead uses:
 
 - the React Router Vite plugin
 - one route tree in `apps/app/app/routes.ts`
@@ -14,9 +14,9 @@ React Router v6 training commonly assumes a JSX tree built with `BrowserRouter`,
 
 `apps/app/react-router.config.ts` sets `ssr: false`, so this remains a browser-rendered SPA. Framework Mode does not imply server rendering.
 
-## Important v7 and v8 Changes
+## Current v8 Behavior
 
-Version 7 consolidated the framework and browser APIs into `react-router`. Version 8 removes the `react-router-dom` compatibility package, is ESM-only, and targets ES2022. Import shared APIs from `react-router` and a DOM-only API from `react-router/dom` when necessary.
+These are current repository constraints, not migration instructions. Framework and browser APIs come from `react-router`; React Router 8 does not use the `react-router-dom` compatibility package, is ESM-only, and targets ES2022. Import shared APIs from `react-router` and a DOM-only API from `react-router/dom` when necessary.
 
 Version 8 also makes its former future flags standard behavior. Middleware, split route modules, and the Vite Environment API are enabled by default; request and trailing-slash behavior follow the v8 contracts. Do not add removed future flags or v6/v7 compatibility APIs.
 
@@ -26,7 +26,8 @@ Version 8 also makes its former future flags standard behavior. Middleware, spli
 - Use layout modules with `Outlet` for shared shells.
 - Import route-generated types from the route's `./+types/...` module instead of duplicating parameter shapes.
 - Use `Link` or `NavLink` for user navigation and `useNavigate` for navigation caused by application logic.
-- Use tRPC TanStack Query hooks for API reads and writes; do not introduce React Router loaders or actions as a second server-state system.
+- Use the installed `@trpc/react-query` hooks for API work: `useQuery` for bounded reads, `useInfiniteQuery` for cursor pages, `useMutation` for writes, `useUtils` for cache updates, and prefetch hooks for likely navigation.
+- Let TanStack Query own server-state caching, background refresh, pagination, optimistic updates, and invalidation. Do not mirror its data into component state or introduce React Router loaders, actions, or manual fetch-and-refresh flows as a second server-state system.
 - Keep `ssr: false` unless the rendering architecture is deliberately changed.
 - Run `pnpm check` after changing routes so route types are regenerated.
 
@@ -39,5 +40,5 @@ Use the documentation for the installed version before relying on older training
 - Framework Mode routing: `node_modules/react-router/docs/start/framework/routing.md`
 - route modules: `node_modules/react-router/docs/start/framework/route-module.md`
 - type safety: `node_modules/react-router/docs/explanation/type-safety.md`
-- v8 upgrade notes: `node_modules/react-router/docs/upgrading/v7.md`
+- installed tRPC React Query API: `node_modules/@trpc/react-query/README.md` and its shipped type declarations
 - official documentation: <https://reactrouter.com/>

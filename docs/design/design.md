@@ -14,7 +14,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 ## Loading and Pending States
 
 - Never leave a blank area while requested data is unavailable. Render a skeleton or appropriately sized progress state.
-- Use `HydrateFallback` when a route needs visible SPA hydration feedback.
+- Use the shared initial loading state for SPA hydration and immediately lazy route content so hydration never hands off to a blank screen.
 - Disable a submitting control and show its pending state. The shared `Button` supports `loading`.
 - Do not replace already available cached data with a loading skeleton during a background refresh.
 - Use optimistic UI when the result is predictable and rollback or reconcile it with the authoritative response.

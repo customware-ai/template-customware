@@ -8,6 +8,7 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
 
+import { resetDatabaseConnection } from "./db/index.js";
 import app from "./index.js";
 import { resolveServerPort } from "./utils/env.js";
 
@@ -23,7 +24,7 @@ console.log(`🏥 Health check: http://localhost:${PORT}/health`);
 /**
  * Start the Hono server
  */
-serve(
+const server = serve(
   {
     fetch: app.fetch,
     port: PORT,
@@ -34,14 +35,25 @@ serve(
 );
 
 /**
- * Graceful shutdown on SIGINT/SIGTERM
+ * Stops accepting requests, lets active requests finish, then closes SQLite.
  */
-process.on("SIGINT", () => {
-  console.log("\n👋 Shutting down gracefully...");
-  process.exit(0);
-});
+let isShuttingDown = false;
+function shutdown(signal: NodeJS.Signals): void {
+  if (isShuttingDown) {
+    return;
+  }
 
-process.on("SIGTERM", () => {
-  console.log("\n👋 Shutting down gracefully...");
-  process.exit(0);
-});
+  isShuttingDown = true;
+  console.log(`\n👋 ${signal} received. Shutting down gracefully...`);
+
+  server.close(() => {
+    const databaseClose = resetDatabaseConnection();
+    if (databaseClose.isErr()) {
+      console.error("Failed to close SQLite cleanly:", databaseClose.error);
+      process.exitCode = 1;
+    }
+  });
+}
+
+process.once("SIGINT", () => shutdown("SIGINT"));
+process.once("SIGTERM", () => shutdown("SIGTERM"));

@@ -22,7 +22,7 @@ import { trpcServer } from "@hono/trpc-server";
 import { APP_NAME, type HealthResponse } from "@template-customware/shared";
 import { Result } from "better-result";
 import { Hono } from "hono";
-import { cors } from "hono/cors";
+import { secureHeaders } from "hono/secure-headers";
 
 import {
   installProcessErrorHandlers,
@@ -50,6 +50,15 @@ function getStaticCacheControl(filePath: string): string {
   return SHORT_STATIC_CACHE;
 }
 
+function isStaticAssetPath(requestPath: string): boolean {
+  const lastSegment = requestPath.split("/").at(-1) ?? "";
+  return (
+    requestPath === "/assets" ||
+    requestPath.startsWith("/assets/") ||
+    path.extname(lastSegment).length > 0
+  );
+}
+
 const app = new Hono();
 /**
  * @critical
@@ -65,10 +74,7 @@ installProcessErrorHandlers();
 // MIDDLEWARE
 // ============================================================
 
-/**
- * Enable CORS for all routes
- */
-app.use("/*", cors());
+app.use("/*", secureHeaders());
 
 // ============================================================
 // tRPC API ENDPOINT
@@ -114,6 +120,21 @@ app.post("/logs", async (c) => {
 });
 
 // ============================================================
+// HEALTH CHECK
+// ============================================================
+
+/** Health checks bypass static-file lookup. */
+app.get("/health", (c) => {
+  const response: HealthResponse = {
+    name: APP_NAME,
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  };
+
+  return c.json(response);
+});
+
+// ============================================================
 // STATIC FILE SERVING
 // ============================================================
 
@@ -133,23 +154,6 @@ app.use(
     },
   }),
 );
-
-// ============================================================
-// HEALTH CHECK
-// ============================================================
-
-/**
- * Health check endpoint for monitoring
- */
-app.get("/health", (c) => {
-  const response: HealthResponse = {
-    name: APP_NAME,
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  };
-
-  return c.json(response);
-});
 
 // ============================================================
 // GLOBAL ERROR HANDLING
@@ -216,6 +220,10 @@ app.notFound((c) => {
  * This allows React Router to handle client-side navigation
  */
 app.get("*", (c) => {
+  if (isStaticAssetPath(c.req.path)) {
+    return c.notFound();
+  }
+
   const indexPath = path.join(CLIENT_DIR, "index.html");
 
   if (!fs.existsSync(indexPath)) {

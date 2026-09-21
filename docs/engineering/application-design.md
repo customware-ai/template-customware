@@ -49,7 +49,9 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - For compound indexes, order columns to match equality filters first and then range or ordering fields used by the query.
 - Do not add speculative indexes. Every index increases write work and storage.
 - Select only the fields the operation needs and avoid loading unbounded related collections.
-- Prevent N+1 access by joining or batching related reads at the query boundary.
+- Apply filters that materially reduce a collection—such as lifecycle state, authorization scope, search, and ownership—in the database query. Never fetch a full or unbounded collection and then filter it on the server or in the browser.
+- Filtering a small, already bounded result in the browser is acceptable for transient presentation when it does not affect authorization, pagination, counts, or result correctness.
+- Return display-ready rows from the query boundary. Never hydrate records or perform authorization, lock, or relationship lookups once per returned row; join or batch that work instead.
 - Inspect generated SQL and query plans when query cost or index use is uncertain.
 
 ## Pagination and Bounded Reads
@@ -82,6 +84,16 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Keep one authoritative owner for server state. Client caches may predict or retain state, but they must reconcile with authoritative responses.
 - Design mutations so their success response contains the authoritative data needed to update the client without an avoidable second read.
 
+## Browser Server State
+
+- TanStack Query through `@trpc/react-query` is the single owner of browser server state. Do not mirror query results into component state or add another fetch cache.
+- Use the typed tRPC hooks that fit the operation: `useQuery` for bounded reads, `useInfiniteQuery` for cursor pages, `useMutation` for writes, `useUtils` for cache operations, and the prefetch hooks for likely next navigation or pages.
+- Include client-selected filters, ordering, and pagination in the tRPC input so TanStack Query gives each result set the correct cache identity. Apply trusted authorization scope at the service and database boundaries, not from client input.
+- Set `staleTime`, `gcTime`, refetch triggers, polling, and bounded read retries from the data's actual freshness and failure needs. Do not apply one policy to unrelated queries or automatically retry unsafe mutations.
+- Preserve usable cached data during background refetches and page changes, using placeholder data when continuity is correct. Show an initial loader only when no usable data exists.
+- For predictable mutations, cancel affected queries, snapshot and optimistically update their cached data, roll back on failure, then reconcile with the authoritative response and invalidate only affected query keys.
+- Use tRPC's integration for cancellation rather than adding parallel request plumbing. Abort work that is no longer useful, but allow useful prefetches to finish populating the cache.
+
 ## Migrations and Data Evolution
 
 - Change the Drizzle schema first, then generate migrations with `pnpm db:generate`.
@@ -93,6 +105,8 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Seed and fixture data are not schema migrations.
 
 The application database is `.dbs/database.db`. Verification may inspect it read-only but must never migrate, seed, reset, truncate, delete, or otherwise mutate it. Verification uses `.dbs/e2e.db` through `E2E_DATABASE_FILE_PATH` or a clearly isolated temporary database.
+
+The shared SQLite connection enables foreign-key enforcement, WAL mode, `NORMAL` synchronization, and a ten-second busy timeout. Keep those production defaults unless measured behavior requires a deliberate change.
 
 ## Performance and Resource Bounds
 

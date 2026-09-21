@@ -10,6 +10,8 @@ import * as schema from "./schemas.js";
 
 export type DatabaseClient = BetterSQLite3Database<typeof schema>;
 
+const SQLITE_BUSY_TIMEOUT_MS = 10_000;
+
 function resolveMaybeRelativePath(filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
 }
@@ -72,6 +74,9 @@ export function initializeDatabase(): Result<DatabaseClient, DatabaseError> {
 
       openingSqlite = new BetterSqlite3(databaseFilePath);
       openingSqlite.pragma("foreign_keys = ON");
+      openingSqlite.pragma("journal_mode = WAL");
+      openingSqlite.pragma("synchronous = NORMAL");
+      openingSqlite.pragma(`busy_timeout = ${SQLITE_BUSY_TIMEOUT_MS}`);
       const initializedDatabase = drizzle(openingSqlite, { schema });
 
       sqlite = openingSqlite;

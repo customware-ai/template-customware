@@ -6,7 +6,6 @@ minimumReleaseAge: 1
 
 catalog:
   "@base-ui/react": 1.8.0
-  "@fontsource-variable/geist": 5.3.0
   "@shadcn/react": 0.3.1
   "@types/node": 24.13.3
   better-result: 3.0.1

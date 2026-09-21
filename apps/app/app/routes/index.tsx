@@ -1,5 +1,7 @@
 import { lazy, Suspense, type ReactElement } from "react";
 
+import { InitialLoadingState } from "~/components/initial-loading-state";
+
 // Potentially large route/demo surfaces should be lazy imported. This keeps the
 // initial route chunk small and makes Vite's 200 kB chunk warning meaningful.
 const Demo = lazy(() => import("~/components/Demo"));
@@ -19,7 +21,7 @@ export default function IndexPage(): ReactElement {
         This Demo mount exists only to expose the shipped shadcn component set for code reference.
         Delete <Demo /> before implementing the actual product task flow on the index page.
       */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<InitialLoadingState />}>
         <Demo />
       </Suspense>
     </>
