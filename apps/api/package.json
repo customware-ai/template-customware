@@ -1,7 +1,7 @@
 {
   "name": "@template-customware/api",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "exports": {
     "./trpc": "./src/trpc/router.ts"
@@ -11,12 +11,12 @@
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
-    "@template-customware/shared": "workspace:*",
     "@hono/node-server": "2.1.1",
     "@hono/trpc-server": "0.4.2",
+    "@template-customware/shared": "workspace:*",
     "@trpc/server": "11.18.0",
-    "better-sqlite3": "12.11.1",
     "better-result": "catalog:",
+    "better-sqlite3": "12.11.1",
     "dotenv": "17.4.2",
     "drizzle-orm": "0.45.2",
     "hono": "4.13.7",

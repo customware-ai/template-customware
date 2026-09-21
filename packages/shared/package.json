@@ -1,7 +1,7 @@
 {
   "name": "@template-customware/shared",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,11 +10,11 @@
   "scripts": {
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
-  "devDependencies": {
-    "typescript": "catalog:"
-  },
   "dependencies": {
     "better-result": "catalog:",
     "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
   }
 }

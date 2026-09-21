@@ -16,16 +16,7 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    semi: true,
-    tabWidth: 2,
-    useTabs: false,
-    printWidth: 100,
-    singleQuote: false,
-    bracketSameLine: false,
-    trailingComma: "all",
     ignorePatterns: IGNORE_PATTERNS,
-    sortPackageJson: false,
-    sortImports: {},
   },
   lint: {
     plugins: ["eslint", "jsx-a11y", "oxc", "react", "react-perf", "typescript"],

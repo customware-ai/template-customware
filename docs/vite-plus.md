@@ -33,6 +33,8 @@ Do not add `--no-cache`, make both tasks own all of `build/**`, run these produc
 
 The root `vite.config.ts` owns formatting, linting, staged checks, and the repository cache policy. Workspace Vite configs own their tasks and builds. Do not add competing formatter, linter, or hook configuration.
 
+Formatting uses Vite+'s defaults. The root formatting block only excludes generated and temporary paths; it does not override style rules.
+
 Use the installed-version documentation before relying on memory:
 
 - concise tool overview: `node_modules/vite-plus/AGENTS.md`

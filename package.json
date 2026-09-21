@@ -1,7 +1,7 @@
 {
   "name": "template-customware",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "description": "Full-stack Customware template with a Vite+ monorepo workspace",
   "type": "module",
   "scripts": {
@@ -24,8 +24,8 @@
     "@hono/node-server": "2.1.1",
     "@hono/trpc-server": "0.4.2",
     "@trpc/server": "11.18.0",
-    "better-sqlite3": "12.11.1",
     "better-result": "catalog:",
+    "better-sqlite3": "12.11.1",
     "dotenv": "17.4.2",
     "drizzle-orm": "0.45.2",
     "hono": "4.13.7",
