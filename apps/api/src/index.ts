@@ -13,12 +13,14 @@
  * - React Router handles client-side routing
  */
 
+import "zod/compile";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { serveStatic } from "@hono/node-server/serve-static";
 import { trpcServer } from "@hono/trpc-server";
 import { APP_NAME, type HealthResponse } from "@template-customware/shared";
+import { Result } from "better-result";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
@@ -97,12 +99,12 @@ app.use(
  * Do NOT remove this endpoint (`POST /logs`).
  */
 app.post("/logs", async (c) => {
-  const payload = await c.req.json().catch(() => undefined);
-  if (payload === undefined) {
+  const payload = await Result.tryPromise(() => c.req.json());
+  if (payload.isErr()) {
     return c.json({ message: "Invalid JSON payload for /logs." }, 400);
   }
 
-  const result = logFrontendPayload(payload);
+  const result = logFrontendPayload(payload.value);
   if (result.isErr()) {
     const status = result.error.type === "LOG_VALIDATION_ERROR" ? 400 : 500;
     return c.json({ message: result.error.message }, status);
@@ -173,7 +175,7 @@ app.onError((error, c) => {
       method: c.req.method,
     },
     page_url: c.req.url,
-  });
+  }).unwrapOr(undefined);
 
   return c.text("Internal Server Error", 500);
 });
@@ -199,7 +201,7 @@ app.notFound((c) => {
       url: c.req.url,
     },
     page_url: c.req.url,
-  });
+  }).unwrapOr(undefined);
 
   return c.text("Not Found", 404);
 });
@@ -223,15 +225,22 @@ app.get("*", (c) => {
   c.header("Cache-Control", SHORT_STATIC_CACHE);
   const brotliIndexPath = `${indexPath}.br`;
   if (acceptsBrotli(c.req.header("Accept-Encoding")) && fs.existsSync(brotliIndexPath)) {
-    const compressedHtml = fs.readFileSync(brotliIndexPath);
+    const compressedHtml = Result.try(() => fs.readFileSync(brotliIndexPath));
+    if (compressedHtml.isErr()) {
+      return c.text("Unable to read the application entry point.", 500);
+    }
+
     c.header("Content-Type", INDEX_HTML_CONTENT_TYPE);
     c.header("Content-Encoding", "br");
     c.header("Vary", "Accept-Encoding", { append: true });
-    return c.body(compressedHtml);
+    return c.body(compressedHtml.value);
   }
 
-  const html = fs.readFileSync(indexPath, "utf-8");
-  return c.html(html);
+  const html = Result.try(() => fs.readFileSync(indexPath, "utf-8"));
+  return html.match({
+    ok: (content) => c.html(content),
+    err: () => c.text("Unable to read the application entry point.", 500),
+  });
 });
 
 export default app;

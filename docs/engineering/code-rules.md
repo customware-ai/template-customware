@@ -9,7 +9,7 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 - **Type safety first:** keep TypeScript strict, give functions explicit return types, never use `any`, and never disable TypeScript with `@ts-nocheck`.
 - **Runtime contracts:** validate external and otherwise untrusted input with Zod and derive TypeScript types with `z.infer`; never duplicate a schema's shape as a handwritten type.
 - **Clean architecture:** browser components call typed client operations, transport handlers call services, services orchestrate domain work, and database query modules own persistence.
-- **Typed failures:** use neverthrow `Result` and `ResultAsync` for expected failures in service and query logic. Do not throw expected business or persistence failures.
+- **Typed failures:** use BetterResult `Result` for expected failures. Fallible synchronous operations return `Result<...>` and fallible asynchronous operations return `Promise<Result<...>>`.
 - **Single source of truth:** each contract, database operation, configuration value, and piece of state has one owner. Reuse it directly rather than adding normalization or parallel abstractions.
 - **Least code:** use the smallest correct implementation and remove code, configuration, and compatibility paths that a change replaces.
 
@@ -30,15 +30,33 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 - Keep client-only and server-only imports inside their runtime boundary.
 - Never weaken type generation, lint configuration, or compiler settings to hide a failure.
 
-## Error Handling
+## BetterResult Error Handling
 
-- Query functions that can fail return `ResultAsync` and wrap throwing dependencies with `ResultAsync.fromThrowable`.
-- Services compose results with `map`, `andThen`, `mapErr`, or equivalent Result operations.
-- Check `.isErr()` or `.isOk()` before reading a Result's error or value.
-- Expected failures use explicit structured error types with useful messages.
-- Throw only for truly unexpected failures at the outer runtime boundary.
-- Translate internal failures into actionable, non-technical UI messages before rendering them.
-- Never expose raw database errors, stacks, or sensitive values to users.
+- Use `better-result` for owned fallible work: domain operations, orchestration, IO, parsing, validation, persistence, serialization, and state transitions. Pure total transforms and accessors do not need a `Result`.
+- Wrap synchronous throw boundaries with `Result.try(...)` and Promise rejection boundaries with `Result.tryPromise(...)`. Map `unknown` once into a meaningful tagged or structured error at the boundary that understands it.
+- For an owned Zod boundary, call `Schema.parse(...)` inside `Result.try(...)` so parsing has the same Result contract as other fallible work. Do not also validate a value already parsed by tRPC or another owning framework boundary.
+- Compose dependent work with `Result.gen(...)`, `yield*`, and `Result.await(...)`. Use `map`, `mapError`, `andThen`, or `andThenAsync` for short transformations. Never throw an expected failure from inside a Result flow.
+- Use `Result.tryPromise` retry options only for idempotent operations that are safe to repeat. Keep retries bounded, use backoff, and pass its attempt `signal` to the underlying cancellation-aware API. Supplying a signal to BetterResult does not cancel active IO unless it is forwarded.
+- Check `.isErr()` or `.isOk()` before accessing a branch, or use exhaustive `match`. Translate internal failures into actionable, non-technical UI messages and never expose database errors, stacks, credentials, or sensitive values.
+- Treat `Panic` and invariant violations as defects, not expected error variants. Do not widen every Result error to `unknown` or `Error` merely because an underlying dependency can throw.
+
+### Correct BetterResult Boundaries
+
+- Do not wrap an API that already returns `Result`; compose or return that Result directly. Do not add `Result.try` around `safeParse`, since `safeParse` already returns an explicit failure. This repository uses `parse` inside `Result.try` at owned schema boundaries to keep one Result contract.
+- Keep framework-required contracts intact. React lazy imports must return normal import Promises, React effects must return cleanup functions, and framework callbacks must retain their required signatures.
+- Throw only when adapting a handled Result into a framework contract that requires throwing, such as a final `TRPCError`, or for an immediate programming invariant such as using a context hook outside its provider.
+- `Result.unwrap` is for tests, executable entrypoints, and similarly terminal boundaries where failure must stop execution. Never unwrap inside normal domain, service, persistence, or UI flows.
+- An isolated pre-hydration script cannot import application modules; keep its minimal local fallback handling rather than duplicating BetterResult inside serialized script text.
+- Intentional UI fire-and-forget work may use `void` only at the React or browser callback boundary after the called operation owns its rejection and returns `Promise<Result<...>>`.
+
+Examples in this repository show the intended patterns:
+
+- `packages/shared/src/index.ts` defines a shared Result type and maps schema failures.
+- `apps/app/app/lib/health.ts` defines a tagged error and combines bounded retry with cancellation.
+- `apps/api/src/services/estimate.ts` composes validation, queries, and result mapping.
+- `apps/api/src/db/queries/estimates.ts` maps database rejection at its owning boundary.
+
+For the installed API, inspect `node_modules/better-result/README.md`, `dist/index.d.mts`, and `dist/index.mjs`. The official reference is <https://better-result.dev/reference/result>.
 
 ## Database and Migrations
 

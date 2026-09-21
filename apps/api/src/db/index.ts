@@ -1,9 +1,11 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
+import { Result } from "better-result";
 import BetterSqlite3, { type Database as BetterSqliteDatabase } from "better-sqlite3";
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
+import { databaseError, type DatabaseError } from "../types/errors.js";
 import * as schema from "./schemas.js";
 
 export type DatabaseClient = BetterSQLite3Database<typeof schema>;
@@ -57,37 +59,58 @@ function ensureDatabaseDirectory(databaseFilePath: string): void {
 /**
  * Initializes sqlite and Drizzle once per process.
  */
-export function initializeDatabase(): DatabaseClient {
+export function initializeDatabase(): Result<DatabaseClient, DatabaseError> {
   if (sqlite && db) {
-    return db;
+    return Result.ok(db);
   }
 
-  const databaseFilePath = getDatabaseFilePath();
-  ensureDatabaseDirectory(databaseFilePath);
+  let openingSqlite: BetterSqliteDatabase | null = null;
+  return Result.try({
+    try: () => {
+      const databaseFilePath = getDatabaseFilePath();
+      ensureDatabaseDirectory(databaseFilePath);
 
-  sqlite = new BetterSqlite3(databaseFilePath);
-  sqlite.pragma("foreign_keys = ON");
-  db = drizzle(sqlite, { schema });
+      openingSqlite = new BetterSqlite3(databaseFilePath);
+      openingSqlite.pragma("foreign_keys = ON");
+      const initializedDatabase = drizzle(openingSqlite, { schema });
 
-  return db;
+      sqlite = openingSqlite;
+      db = initializedDatabase;
+      openingSqlite = null;
+
+      return initializedDatabase;
+    },
+    catch: (cause) => {
+      if (openingSqlite !== null) {
+        Result.try(() => openingSqlite?.close()).unwrapOr(undefined);
+      }
+
+      return databaseError("Failed to initialize the database", cause);
+    },
+  });
 }
 
 /**
  * Returns the shared database connection.
  */
-export function getDatabase(): DatabaseClient {
+export function getDatabase(): Result<DatabaseClient, DatabaseError> {
   if (!sqlite || !db) {
     return initializeDatabase();
   }
 
-  return db;
+  return Result.ok(db);
 }
 
 /**
  * Closes the shared sqlite handle so tests can swap database files safely.
  */
-export function resetDatabaseConnection(): void {
-  sqlite?.close();
-  sqlite = null;
-  db = null;
+export function resetDatabaseConnection(): Result<void, DatabaseError> {
+  return Result.try({
+    try: () => {
+      sqlite?.close();
+      sqlite = null;
+      db = null;
+    },
+    catch: (cause) => databaseError("Failed to close the database", cause),
+  });
 }

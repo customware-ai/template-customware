@@ -110,6 +110,9 @@ catalogs:
     '@types/node':
       specifier: 24.13.3
       version: 24.13.3
+    better-result:
+      specifier: 3.0.1
+      version: 3.0.1
     react:
       specifier: 19.2.8
       version: 19.2.8
@@ -122,6 +125,9 @@ catalogs:
     vite-plus:
       specifier: 0.3.3
       version: 0.3.3
+    zod:
+      specifier: 4.6.5
+      version: 4.6.5
 
 overrides:
   picomatch: 4.0.4
@@ -140,6 +146,9 @@ importers:
       '@trpc/server':
         specifier: 11.18.0
         version: 11.18.0(typescript@7.0.2)
+      better-result:
+        specifier: 'catalog:'
+        version: 3.0.1
       better-sqlite3:
         specifier: 12.11.1
         version: 12.11.1
@@ -152,12 +161,9 @@ importers:
       hono:
         specifier: 4.13.7
         version: 4.13.7
-      neverthrow:
-        specifier: 8.2.0
-        version: 8.2.0
       zod:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 'catalog:'
+        version: 4.6.5
     devDependencies:
       '@playwright/test':
         specifier: 1.59.1
@@ -231,6 +237,9 @@ importers:
       '@trpc/server':
         specifier: 11.18.0
         version: 11.18.0(typescript@7.0.2)
+      better-result:
+        specifier: 'catalog:'
+        version: 3.0.1
       better-sqlite3:
         specifier: 12.11.1
         version: 12.11.1
@@ -243,12 +252,9 @@ importers:
       hono:
         specifier: 4.13.7
         version: 4.13.7
-      neverthrow:
-        specifier: 8.2.0
-        version: 8.2.0
       zod:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 'catalog:'
+        version: 4.6.5
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.13
@@ -273,7 +279,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: 5.9.0
-        version: 5.9.0(@standard-schema/spec@1.1.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.5.0(typescript@7.0.2))(zod@4.4.3)
+        version: 5.9.0(@standard-schema/spec@1.1.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.5.0(typescript@7.0.2))(zod@4.6.5)
       '@react-router/node':
         specifier: 8.4.0
         version: 8.4.0(react-router@8.4.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2)
@@ -292,6 +298,9 @@ importers:
       '@trpc/react-query':
         specifier: 11.18.0
         version: 11.18.0(@tanstack/react-query@5.102.8(react@19.2.8))(@trpc/client@11.18.0(@trpc/server@11.18.0(typescript@7.0.2))(typescript@7.0.2))(@trpc/server@11.18.0(typescript@7.0.2))(react@19.2.8)(typescript@7.0.2)
+      better-result:
+        specifier: 'catalog:'
+        version: 3.0.1
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -319,9 +328,6 @@ importers:
       lucide-react:
         specifier: 1.31.0
         version: 1.31.0(react@19.2.8)
-      neverthrow:
-        specifier: 8.2.0
-        version: 8.2.0
       radix-ui:
         specifier: 1.6.7
         version: 1.6.7(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -362,8 +368,8 @@ importers:
         specifier: 1.1.2
         version: 1.1.2(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       zod:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 'catalog:'
+        version: 4.6.5
     devDependencies:
       '@react-router/dev':
         specifier: 8.4.0
@@ -401,9 +407,12 @@ importers:
 
   packages/shared:
     dependencies:
+      better-result:
+        specifier: 'catalog:'
+        version: 3.0.1
       zod:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 'catalog:'
+        version: 4.6.5
     devDependencies:
       typescript:
         specifier: 'catalog:'
@@ -2413,12 +2422,6 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@rollup/rollup-linux-x64-gnu@4.63.4':
-    resolution: {integrity: sha512-791ET7W17NnScOZM7h4dX5hYspxE28htPFsb1awY/NRR8+PRNkS53e475rDdxXXDrP+kwnCcNWg9CX5ztn/Aqw==}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
@@ -3106,6 +3109,9 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
+  better-result@3.0.1:
+    resolution: {integrity: sha512-rnCeqEXkKPHmz5MO5ZroPRDyHe4YvlNPyy7qj8cVcWs/GnvSvC3086G74/220W+wWcIWlXgzvcjskFV0A4blUQ==}
+
   better-sqlite3@12.11.1:
     resolution: {integrity: sha512-dq9AtApgg5PGFtBzPFSBl3HZQjHok5gaQCM6zh2Yk0aSmDCs1CbnVI8/HgASQkNKsWFpseIO9beg5xxpYhbIfA==}
     engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x || 26.x}
@@ -3764,10 +3770,6 @@ packages:
   napi-build-utils@2.0.0:
     resolution: {integrity: sha512-GEbrYkbfF7MoNaoh2iGG84Mnf/WZfB0GdGEsM8wz7Expx/LlWf5U8t9nvJKXSp3qr5IsEbK04cBGhol/KwOsWA==}
 
-  neverthrow@8.2.0:
-    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
-    engines: {node: '>=18'}
-
   node-abi@3.96.0:
     resolution: {integrity: sha512-rebQ/lz7i0EkoLzUVSrKRzA69zMkwLp95kKMWoMDkkM00Suxz0D7zEQPwRml5fQum24mj7bPvmlgLAmu2JCiYg==}
     engines: {node: '>=10'}
@@ -4343,8 +4345,8 @@ packages:
   yuku-parser@0.9.5:
     resolution: {integrity: sha512-IBnAdNVMswWbJcM7woPluOudectJzFjJ1N8jVRxP9Uq4CIv5hZdBIcdmtRbFDYF/Ph2j2gVup4YJ4N9mh0jYFA==}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
 
@@ -4766,14 +4768,14 @@ snapshots:
       '@trpc/server': 11.18.0(typescript@7.0.2)
       hono: 4.13.7
 
-  '@hookform/resolvers@5.9.0(@standard-schema/spec@1.1.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.5.0(typescript@7.0.2))(zod@4.4.3)':
+  '@hookform/resolvers@5.9.0(@standard-schema/spec@1.1.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.5.0(typescript@7.0.2))(zod@4.6.5)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.85.0(react@19.2.8)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
       valibot: 1.5.0(typescript@7.0.2)
-      zod: 4.4.3
+      zod: 4.6.5
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -5857,9 +5859,6 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@rollup/rollup-linux-x64-gnu@4.63.4':
-    optional: true
-
   '@standard-schema/spec@1.1.0': {}
 
   '@standard-schema/utils@0.3.0': {}
@@ -6358,6 +6357,8 @@ snapshots:
   base64-js@1.5.1: {}
 
   baseline-browser-mapping@2.11.25: {}
+
+  better-result@3.0.1: {}
 
   better-sqlite3@12.11.1:
     dependencies:
@@ -6875,10 +6876,6 @@ snapshots:
   nanoid@3.3.19: {}
 
   napi-build-utils@2.0.0: {}
-
-  neverthrow@8.2.0:
-    optionalDependencies:
-      '@rollup/rollup-linux-x64-gnu': 4.63.4
 
   node-abi@3.96.0:
     dependencies:
@@ -7614,4 +7611,4 @@ snapshots:
       '@yuku-parser/binding-win32-arm64': 0.9.5
       '@yuku-parser/binding-win32-x64': 0.9.5
 
-  zod@4.4.3: {}
+  zod@4.6.5: {}

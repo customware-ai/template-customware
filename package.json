@@ -25,11 +25,11 @@
     "@hono/trpc-server": "0.4.2",
     "@trpc/server": "11.18.0",
     "better-sqlite3": "12.11.1",
+    "better-result": "catalog:",
     "dotenv": "17.4.2",
     "drizzle-orm": "0.45.2",
     "hono": "4.13.7",
-    "neverthrow": "8.2.0",
-    "zod": "4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",

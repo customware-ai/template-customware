@@ -1,3 +1,4 @@
+import { Result } from "better-result";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
@@ -10,7 +11,7 @@ import { prepareE2EDatabase } from "../../e2e/database.js";
  * Ensures service tests use the same E2E database contract as Playwright.
  */
 beforeAll(async () => {
-  resetDatabaseConnection();
+  Result.unwrap(resetDatabaseConnection(), "Failed to reset the test database connection");
   await prepareE2EDatabase();
 });
 
@@ -18,7 +19,7 @@ beforeAll(async () => {
  * Clears estimate rows between test cases for deterministic assertions.
  */
 beforeEach(async () => {
-  const db = getDatabase();
+  const db = Result.unwrap(getDatabase(), "Failed to open the test database");
   await db.delete(estimates);
 });
 
@@ -26,7 +27,7 @@ beforeEach(async () => {
  * Releases the shared sqlite connection and removes the temporary database.
  */
 afterAll(() => {
-  resetDatabaseConnection();
+  Result.unwrap(resetDatabaseConnection(), "Failed to close the test database connection");
 });
 
 describe("estimate service", () => {
@@ -55,11 +56,18 @@ describe("estimate service", () => {
     expect(result.value.total_value).toBe(28640.14);
   });
 
-  it("returns a validation error for invalid create payload", async () => {
-    const result = await createEstimate({
+  it("maps persisted rows that violate the contract to a validation error", async () => {
+    const db = Result.unwrap(getDatabase(), "Failed to open the test database");
+    await db.insert(estimates).values({
       estimate_number: "",
-      account_name: "",
+      account_name: "DR INC",
+      project_name: "Invalid persisted estimate",
+      workflow_stage: "Estimate Build",
+      item_count: 1,
+      total_value: 100,
+      margin_percent: 20,
     });
+    const result = await listEstimates({});
 
     expect(result.isErr()).toBe(true);
     if (result.isOk()) {
@@ -101,7 +109,7 @@ describe("estimate service", () => {
     expect(reviewOnly.value).toHaveLength(1);
     expect(reviewOnly.value[0]?.estimate_number).toBe("EST-001002");
 
-    const db = getDatabase();
+    const db = Result.unwrap(getDatabase(), "Failed to open the test database");
     const rows = await db.select().from(estimates).where(eq(estimates.status, "approved"));
 
     expect(rows).toHaveLength(1);

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import { err, ok, type Result } from "neverthrow";
+import { Result } from "better-result";
 
 import {
   FrontendLogSchema,
@@ -101,73 +101,61 @@ function formatLogLine(entry: LogEntry & { timestamp: string }): string {
 }
 
 /**
- * Writes line and trims file to max row count.
- */
-function persistLine(filePath: string, line: string): Result<void, LogPersistError> {
-  try {
-    const priorContent = existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
-    const priorLines = priorContent
-      .split(/\r?\n/)
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0);
-    const nextLines = [...priorLines, line].slice(-MAX_LOG_LINES);
-    writeFileSync(filePath, `${nextLines.join("\n")}\n`);
-    return ok(undefined);
-  } catch (error) {
-    return err({
-      type: "LOG_WRITE_ERROR",
-      message: "Unable to write log file.",
-      originalError: error instanceof Error ? error : undefined,
-    });
-  }
-}
-
-/**
- * Persist generic log entry after normalizing timestamp and context.
+ * Writes a normalized log entry and trims the file to its maximum row count.
  */
 function persistLogEntry(
   entry: Omit<LogEntry, "timestamp"> & { timestamp?: string },
 ): Result<void, LogPersistError> {
-  const normalized: Omit<LogEntry, "timestamp"> & { timestamp: string } = {
-    ...entry,
-    timestamp: normalizeTimestamp(entry.timestamp),
-    context: normalizeContext(entry.context),
-  };
+  return Result.try({
+    try: () => {
+      const normalized: Omit<LogEntry, "timestamp"> & { timestamp: string } = {
+        ...entry,
+        timestamp: normalizeTimestamp(entry.timestamp),
+        context: normalizeContext(entry.context),
+      };
 
-  const filePath = getLogFilePath();
-  const line = formatLogLine(normalized);
-
-  return persistLine(filePath, line);
+      const filePath = getLogFilePath();
+      const line = formatLogLine(normalized);
+      const priorContent = existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
+      const priorLines = priorContent
+        .split(/\r?\n/)
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0);
+      const nextLines = [...priorLines, line].slice(-MAX_LOG_LINES);
+      writeFileSync(filePath, `${nextLines.join("\n")}\n`);
+    },
+    catch: (error): LogPersistError => ({
+      type: "LOG_WRITE_ERROR",
+      message: "Unable to write log file.",
+      originalError: error instanceof Error ? error : undefined,
+    }),
+  });
 }
 
 /**
  * Persist logs produced by frontend caller.
  */
 export function logFrontendPayload(input: unknown): Result<void, LogPersistError> {
-  const parsed = FrontendLogSchema.safeParse(input);
-  if (!parsed.success) {
-    return err({
+  return Result.try({
+    try: () => FrontendLogSchema.parse(input),
+    catch: (): LogPersistError => ({
       type: "LOG_VALIDATION_ERROR",
       message: "Invalid frontend log payload.",
-    });
-  }
-
-  return persistLogEntry(parsed.data);
+    }),
+  }).andThen(persistLogEntry);
 }
 
 /**
  * Persist logs produced by backend services and handlers.
  */
 export function logServerPayload(input: ServerLogPayload): Result<void, LogPersistError> {
-  const parsed = ServerLogSchema.safeParse(input);
-  if (!parsed.success) {
-    return err({
+  return Result.try({
+    try: () => ServerLogSchema.parse(input),
+    catch: (): LogPersistError => ({
       type: "LOG_VALIDATION_ERROR",
       message: "Invalid server log payload.",
-    });
-  }
-
-  return persistLogEntry(parsed.data);
+    }),
+  }).andThen(persistLogEntry);
 }
 
 /**
@@ -209,11 +197,11 @@ export function installProcessErrorHandlers(): void {
   processErrorHandlersInstalled = true;
 
   process.on("unhandledRejection", (reason) => {
-    void logServerPayload(normalizeThrowable(reason));
+    logServerPayload(normalizeThrowable(reason)).unwrapOr(undefined);
   });
 
   process.on("uncaughtException", (error) => {
-    void logServerPayload(normalizeThrowable(error));
+    logServerPayload(normalizeThrowable(error)).unwrapOr(undefined);
   });
 }
 
@@ -225,8 +213,8 @@ export function logServerEvent(
   message: string,
   context: Record<string, unknown> = {},
   pageUrl: string = "",
-): void {
-  void logServerPayload({
+): Result<void, LogPersistError> {
+  return logServerPayload({
     source: "server",
     level,
     message,

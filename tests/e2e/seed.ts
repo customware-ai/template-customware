@@ -1,3 +1,5 @@
+import { Result } from "better-result";
+
 import { getDatabase } from "../../apps/api/src/db/index.js";
 import { estimates } from "../../apps/api/src/db/schemas.js";
 
@@ -23,7 +25,7 @@ export const SEEDED_E2E_ESTIMATE = {
 } as const;
 
 export async function seedE2EData(): Promise<void> {
-  const db = getDatabase();
+  const db = Result.unwrap(getDatabase(), "Failed to open the E2E database");
 
   await db.insert(estimates).values(SEEDED_E2E_ESTIMATE);
 }

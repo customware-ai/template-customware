@@ -1,4 +1,4 @@
-import { fromThrowable, type Result } from "neverthrow";
+import { Result } from "better-result";
 import { useCallback, useRef, useSyncExternalStore } from "react";
 
 /**
@@ -41,31 +41,31 @@ function createLocalStorageError(message: string, error: unknown): Error {
 }
 
 function getLocalStorageItem(key: string): Result<string | null, Error> {
-  return fromThrowable(
-    (storageKey: string): string | null => window.localStorage.getItem(storageKey),
-    (error: unknown): Error =>
+  return Result.try({
+    try: (): string | null => window.localStorage.getItem(key),
+    catch: (error: unknown): Error =>
       createLocalStorageError(`Failed to read localStorage key "${key}".`, error),
-  )(key);
+  });
 }
 
 function setLocalStorageItem(key: string, value: string): Result<void, Error> {
-  return fromThrowable(
-    (storageKey: string, storageValue: string): void => {
-      window.localStorage.setItem(storageKey, storageValue);
+  return Result.try({
+    try: (): void => {
+      window.localStorage.setItem(key, value);
     },
-    (error: unknown): Error =>
+    catch: (error: unknown): Error =>
       createLocalStorageError(`Failed to write localStorage key "${key}".`, error),
-  )(key, value);
+  });
 }
 
 function removeLocalStorageItem(key: string): Result<void, Error> {
-  return fromThrowable(
-    (storageKey: string): void => {
-      window.localStorage.removeItem(storageKey);
+  return Result.try({
+    try: (): void => {
+      window.localStorage.removeItem(key);
     },
-    (error: unknown): Error =>
+    catch: (error: unknown): Error =>
       createLocalStorageError(`Failed to remove localStorage key "${key}".`, error),
-  )(key);
+  });
 }
 
 /**
@@ -73,19 +73,19 @@ function removeLocalStorageItem(key: string): Result<void, Error> {
  * JSON is the shared storage format for the generic hook.
  */
 function serializeLocalStorageValue<TValue>(value: TValue): Result<string, Error> {
-  return fromThrowable(
-    (input: TValue): string => JSON.stringify(input),
-    (error: unknown): Error =>
+  return Result.try({
+    try: (): string => JSON.stringify(value),
+    catch: (error: unknown): Error =>
       createLocalStorageError("Failed to serialize localStorage value.", error),
-  )(value);
+  });
 }
 
 function parseLocalStorageValue<TValue>(rawValue: string): Result<TValue, Error> {
-  return fromThrowable(
-    (input: string): TValue => JSON.parse(input) as TValue,
-    (error: unknown): Error =>
+  return Result.try({
+    try: () => JSON.parse(rawValue),
+    catch: (error: unknown): Error =>
       createLocalStorageError("Failed to parse localStorage value.", error),
-  )(rawValue);
+  });
 }
 
 /**
@@ -104,16 +104,16 @@ function parseLocalStorageSnapshot<TValue>(
     };
   }
 
-  return parseLocalStorageValue<TValue>(rawValue).match(
-    (value) => ({
+  return parseLocalStorageValue<TValue>(rawValue).match({
+    ok: (value) => ({
       value,
       rawValue,
     }),
-    () => ({
+    err: () => ({
       value: defaultValue,
       rawValue,
     }),
-  );
+  });
 }
 
 /**
@@ -227,10 +227,10 @@ export function useLocalStorage<TValue>(
       return serverSnapshotRef.current;
     }
 
-    const rawValue = getLocalStorageItem(key).match(
-      (value) => value,
-      () => null,
-    );
+    const rawValue = getLocalStorageItem(key).match({
+      ok: (value) => value,
+      err: () => null,
+    });
     if (clientSnapshotRef.current.isHydrated && clientSnapshotRef.current.rawValue === rawValue) {
       return clientSnapshotRef.current;
     }
@@ -270,10 +270,10 @@ export function useLocalStorage<TValue>(
         typeof nextValue === "function"
           ? (nextValue as (previousValue: TValue) => TValue)(currentSnapshot.value)
           : nextValue;
-      const serializedValue = serializeLocalStorageValue(resolvedValue).match(
-        (value) => value,
-        () => null,
-      );
+      const serializedValue = serializeLocalStorageValue(resolvedValue).match({
+        ok: (value) => value,
+        err: () => null,
+      });
 
       if (serializedValue === null) {
         return;

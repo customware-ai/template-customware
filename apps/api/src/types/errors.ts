@@ -16,6 +16,17 @@ export type DatabaseError = {
 };
 
 /**
+ * Converts an unknown database failure into the sample database contract.
+ */
+export function databaseError(message: string, cause: unknown): DatabaseError {
+  return {
+    type: "DATABASE_ERROR",
+    message,
+    originalError: cause instanceof Error ? cause : undefined,
+  };
+}
+
+/**
  * Typed validation failure contract for the sample backend slice.
  */
 export type ValidationError = {

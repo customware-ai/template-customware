@@ -21,13 +21,13 @@ export function HeroSection({
   useEffect((): (() => void) => {
     const controller = new AbortController();
 
-    void fetchHealth(controller.signal)
-      .then((): void => setApiStatus("connected"))
-      .catch((): void => {
-        if (!controller.signal.aborted) {
-          setApiStatus("unavailable");
-        }
-      });
+    void fetchHealth(controller.signal).then((result): void => {
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      setApiStatus(result.isOk() ? "connected" : "unavailable");
+    });
 
     return (): void => controller.abort();
   }, []);

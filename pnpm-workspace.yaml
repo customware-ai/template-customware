@@ -6,11 +6,13 @@ minimumReleaseAge: 1
 
 catalog:
   "@types/node": 24.13.3
+  better-result: 3.0.1
   react: 19.2.8
   react-dom: 19.2.8
   typescript: 7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@0.3.3
   vite-plus: 0.3.3
+  zod: 4.6.5
 
 catalogMode: prefer
 

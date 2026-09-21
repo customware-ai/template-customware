@@ -1,5 +1,7 @@
 "use client";
 
+import { Result } from "better-result";
+
 type FrontendLogLevel = "debug" | "info" | "warn" | "error";
 
 interface ErrorLoggerOptions {
@@ -88,16 +90,36 @@ export function sendFrontendLog(
   payload: FrontendLogPayload,
   fetchImpl: typeof fetch,
   endpoint: string,
+): Promise<Result<void, Error>> {
+  return Result.tryPromise({
+    try: () =>
+      fetchImpl(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }),
+    catch: (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+  }).then(
+    Result.andThen((response) =>
+      response.ok
+        ? Result.ok(undefined)
+        : Result.err(new Error(`Frontend log request failed with status ${response.status}.`)),
+    ),
+  );
+}
+
+function dispatchFrontendLog(
+  payload: FrontendLogPayload,
+  fetchImpl: typeof fetch,
+  endpoint: string,
 ): void {
-  void fetchImpl(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-    keepalive: true,
-  }).catch((error: unknown) => {
-    console.warn("Failed to forward frontend log.", { error });
+  void sendFrontendLog(payload, fetchImpl, endpoint).then((result): void => {
+    if (result.isErr()) {
+      console.warn("Failed to forward frontend log.", { error: result.error });
+    }
   });
 }
 
@@ -124,7 +146,7 @@ export function logFrontendError(
     fetchImpl: options?.fetchImpl ?? window.fetch,
   };
 
-  sendFrontendLog(payload, finalOptions.fetchImpl, finalOptions.endpoint);
+  dispatchFrontendLog(payload, finalOptions.fetchImpl, finalOptions.endpoint);
 }
 
 /**
@@ -173,7 +195,7 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
   windowErrorHandler = (event: ErrorEvent): void => {
     const context = normalizeErrorContext(event, "window-error");
     const message = event.message || `Window error: ${context.filename ?? "unknown source"}`;
-    sendFrontendLog(
+    dispatchFrontendLog(
       buildLogPayload(message, context),
       finalOptions.fetchImpl,
       finalOptions.endpoint,
@@ -187,7 +209,7 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
 
     const context = normalizeErrorContext(event, "document-error");
     const message = event.message || `Document error: ${context.target ?? "unknown target"}`;
-    sendFrontendLog(
+    dispatchFrontendLog(
       buildLogPayload(message, context),
       finalOptions.fetchImpl,
       finalOptions.endpoint,
@@ -201,7 +223,7 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
         ? event.reason.message
         : `Unhandled promise rejection: ${String(event.reason)}`;
 
-    sendFrontendLog(
+    dispatchFrontendLog(
       buildLogPayload(message, context),
       finalOptions.fetchImpl,
       finalOptions.endpoint,

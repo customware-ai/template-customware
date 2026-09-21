@@ -1,3 +1,4 @@
+import { Result } from "better-result";
 import { z } from "zod";
 
 /**
@@ -12,7 +13,7 @@ const ServerPortSchema = z.coerce.number().int().min(1).max(65_535);
  * unusable input such as empty strings or out-of-range ports.
  */
 export function resolveServerPort(environment: NodeJS.ProcessEnv): number {
-  const parsedPort = ServerPortSchema.safeParse(environment.PORT);
+  const parsedPort = Result.try(() => ServerPortSchema.parse(environment.PORT));
 
-  return parsedPort.success ? parsedPort.data : DEFAULT_SERVER_PORT;
+  return parsedPort.unwrapOr(DEFAULT_SERVER_PORT);
 }

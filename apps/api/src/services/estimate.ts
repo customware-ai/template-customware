@@ -1,10 +1,11 @@
-import { ResultAsync, errAsync } from "neverthrow";
+import { Result } from "better-result";
+import { ZodError } from "zod";
 
 import {
-  CreateEstimateInputSchema,
   EstimateSchema,
-  ListEstimatesFilterSchema,
+  type CreateEstimateInput,
   type Estimate,
+  type ListEstimatesFilter,
 } from "../contracts/estimate.js";
 import { createEstimateRow, listEstimateRows } from "../db/queries/estimates.js";
 import type { AppError, ValidationError } from "../types/errors.js";
@@ -28,63 +29,51 @@ function validationError(message: string, issues: string[]): ValidationError {
   };
 }
 
+function validationIssues(cause: unknown, fallback: string): string[] {
+  return cause instanceof ZodError ? cause.issues.map((issue) => issue.message) : [fallback];
+}
+
 /**
- * Validates and returns estimates for the template example service.
+ * Returns estimates for the template example service and validates persisted rows.
  * This is sample list behavior, not a product-specific decision.
  */
-export function listEstimates(input: unknown): ResultAsync<Estimate[], AppError> {
-  const filtersResult = ListEstimatesFilterSchema.safeParse(input ?? {});
-  if (!filtersResult.success) {
-    return errAsync(
-      validationError(
-        "Invalid estimate filters",
-        filtersResult.error.issues.map((issue) => issue.message),
-      ),
-    );
-  }
+export async function listEstimates(
+  filters: ListEstimatesFilter,
+): Promise<Result<Estimate[], AppError>> {
+  return Result.gen(async function* () {
+    const rows = yield* Result.await(listEstimateRows(filters));
+    const estimates = yield* Result.try({
+      try: () => rows.map((row) => EstimateSchema.parse(row)),
+      catch: (cause) =>
+        validationError(
+          "Failed to parse estimate rows",
+          validationIssues(cause, "Database rows did not match the estimate contract."),
+        ),
+    });
 
-  return listEstimateRows(filtersResult.data).andThen((rows) => {
-    const run = ResultAsync.fromThrowable(
-      async () => {
-        return rows.map((row) => EstimateSchema.parse(row));
-      },
-      () =>
-        validationError("Failed to parse estimate rows", [
-          "Database rows did not match the estimate contract.",
-        ]),
-    );
-
-    return run();
+    return Result.ok(estimates);
   });
 }
 
 /**
- * Validates input and creates a single estimate.
+ * Creates a single estimate and validates the persisted row.
  * Keep this as the sample mutation path until the consuming app defines its
  * own backend contract.
  */
-export function createEstimate(input: unknown): ResultAsync<Estimate, AppError> {
-  const createResult = CreateEstimateInputSchema.safeParse(input);
-  if (!createResult.success) {
-    return errAsync(
-      validationError(
-        "Invalid estimate payload",
-        createResult.error.issues.map((issue) => issue.message),
-      ),
-    );
-  }
+export async function createEstimate(
+  input: CreateEstimateInput,
+): Promise<Result<Estimate, AppError>> {
+  return Result.gen(async function* () {
+    const row = yield* Result.await(createEstimateRow(input));
+    const estimate = yield* Result.try({
+      try: () => EstimateSchema.parse(row),
+      catch: (cause) =>
+        validationError(
+          "Failed to parse created estimate",
+          validationIssues(cause, "Database row did not match the estimate contract."),
+        ),
+    });
 
-  return createEstimateRow(createResult.data).andThen((row) => {
-    const run = ResultAsync.fromThrowable(
-      async () => {
-        return EstimateSchema.parse(row);
-      },
-      () =>
-        validationError("Failed to parse created estimate", [
-          "Database row did not match the estimate contract.",
-        ]),
-    );
-
-    return run();
+    return Result.ok(estimate);
   });
 }

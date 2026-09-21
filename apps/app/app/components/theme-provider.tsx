@@ -1,5 +1,6 @@
 "use client";
 
+import { Result } from "better-result";
 import * as React from "react";
 
 /**
@@ -28,21 +29,30 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState);
 
-function applyTheme(theme: ThemeMode): void {
-  const root = window.document.documentElement;
+function toError(cause: unknown): Error {
+  return cause instanceof Error ? cause : new Error(String(cause));
+}
 
-  root.classList.remove("light", "dark");
+function applyTheme(theme: ThemeMode): Result<void, Error> {
+  return Result.try({
+    try: () => {
+      const root = window.document.documentElement;
 
-  if (theme === "system") {
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+      root.classList.remove("light", "dark");
 
-    root.classList.add(systemTheme);
-    return;
-  }
+      if (theme === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
 
-  root.classList.add(theme);
+        root.classList.add(systemTheme);
+        return;
+      }
+
+      root.classList.add(theme);
+    },
+    catch: toError,
+  });
 }
 
 export function ThemeProvider({
@@ -55,19 +65,30 @@ export function ThemeProvider({
       return defaultTheme;
     }
 
-    const storedTheme = window.localStorage.getItem(storageKey);
+    const storedThemeResult = Result.try({
+      try: () => window.localStorage.getItem(storageKey),
+      catch: toError,
+    });
+    const storedTheme = storedThemeResult.unwrapOr(null);
     return storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
       ? storedTheme
       : defaultTheme;
   });
 
   React.useEffect(() => {
-    applyTheme(theme);
+    applyTheme(theme).unwrapOr(undefined);
   }, [theme]);
 
   const setTheme = React.useCallback(
     (nextTheme: ThemeMode): void => {
-      window.localStorage.setItem(storageKey, nextTheme);
+      const persisted = Result.try({
+        try: () => window.localStorage.setItem(storageKey, nextTheme),
+        catch: toError,
+      });
+      if (persisted.isErr()) {
+        return;
+      }
+
       setThemeState(nextTheme);
     },
     [storageKey],

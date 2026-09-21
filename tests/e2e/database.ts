@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
+import { Result } from "better-result";
+
 import { seedE2EData } from "./seed";
 
 /**
@@ -36,7 +38,7 @@ export async function prepareE2EDatabase(): Promise<void> {
   }
 
   const { resetDatabaseConnection } = await import("../../apps/api/src/db/index.js");
-  resetDatabaseConnection();
+  Result.unwrap(resetDatabaseConnection(), "Failed to reset the E2E database connection");
 
   rmSync(databaseFilePath, { force: true });
   for (const sqliteSidecarFilePath of sqliteSidecarFilePaths) {
@@ -44,7 +46,7 @@ export async function prepareE2EDatabase(): Promise<void> {
   }
 
   const { runMigrations } = await import("../../apps/api/src/db/migrate.js");
-  await runMigrations();
+  Result.unwrap(runMigrations(), "Failed to migrate the E2E database");
   await seedE2EData();
-  resetDatabaseConnection();
+  Result.unwrap(resetDatabaseConnection(), "Failed to close the E2E database connection");
 }

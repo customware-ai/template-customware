@@ -9,6 +9,8 @@ Template Customware is the reusable full-stack starting point for Customware pro
 - SQLite persistence with Drizzle migrations
 - pnpm workspaces for `apps/*` and `packages/*`
 - source-level shared contracts under `packages/shared`
+- BetterResult contracts and mapped failure handling across browser, shared, and API code
+- Zod 4.6 contracts with lazy server compilation; browser schemas keep the standard parser to avoid an 8 KB gzipped compiler payload and `new Function` CSP requirement
 - Vite+ formatting, linting, type checking, task orchestration, and hooks
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
 - one deployable output containing `build/client` and `build/server`
