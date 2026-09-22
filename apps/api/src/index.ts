@@ -68,7 +68,7 @@ installProcessErrorHandlers();
 // MIDDLEWARE
 // ============================================================
 
-app.use("/*", secureHeaders());
+app.use("/*", secureHeaders({ xFrameOptions: false }));
 
 // ============================================================
 // tRPC API ENDPOINT
