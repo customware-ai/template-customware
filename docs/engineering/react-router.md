@@ -32,7 +32,7 @@ Version 8 also makes its former future flags standard behavior. Middleware, spli
 - Let TanStack Query own server-state caching, background refresh, pagination, optimistic updates, and invalidation. Do not mirror its data into component state or introduce React Router loaders, actions, or manual fetch-and-refresh flows as a second server-state system.
 - Use `apps/app/app/components/demo/DataSection.tsx` as the live reference for a typed cursor query, mutation, focused invalidation, loading, empty, error, and pagination states.
 - Keep `ssr: false` unless the rendering architecture is deliberately changed.
-- Run `pnpm check` after changing routes so route types are regenerated.
+- Run `pnpm lint` after changing routes so route types are regenerated before application-source linting.
 
 ## Authoritative References
 

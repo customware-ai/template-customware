@@ -12,9 +12,6 @@ const IGNORE_PATTERNS = [
 ];
 
 export default defineConfig({
-  staged: {
-    "*": "vp check --fix",
-  },
   fmt: {
     ignorePatterns: IGNORE_PATTERNS,
   },

@@ -54,7 +54,7 @@ For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
 - `pnpm dev` – Starts the app and API development tasks.
 - `pnpm build` – Builds `build/client` and `build/server`.
 - `pnpm start` – Runs the built Hono server.
-- `pnpm check` – Runs React Router type generation plus Vite+ formatting, linting, and type diagnostics.
+- `pnpm lint` – Generates React Router route types, then lints application source under `apps/` and `packages/`.
 - `pnpm test` – Runs the existing unit and integration suite through Vite+.
 - `pnpm db:generate` – Generates Drizzle migrations from schema changes.
 - `pnpm db:migrate` – Applies SQLite migrations.
