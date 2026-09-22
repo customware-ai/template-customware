@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * TEMPLATE EXAMPLE ONLY. Use this file to learn the shipped UI patterns, then
+ * remove it with the demo surface when the real product UI replaces it.
+ */
 import { FileTextIcon, UserRoundIcon, XIcon } from "lucide-react";
 import type { FormEvent, ReactElement } from "react";
 

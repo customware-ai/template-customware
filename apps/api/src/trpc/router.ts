@@ -1,62 +1,38 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 
 import {
-  CreateEstimateInputSchema,
-  DEFAULT_ESTIMATE_PAGE_SIZE,
-  ListEstimatesInputSchema,
-} from "../contracts/estimate.js";
-import { createEstimate, listEstimates } from "../services/estimate.js";
+  CreateTodoInputSchema,
+  DEFAULT_TODO_PAGE_SIZE,
+  ListTodosInputSchema,
+} from "../contracts/todo.js";
+import { createTodo, listTodos } from "../services/todo.js";
 import type { AppError } from "../types/errors.js";
 
 /**
- * Template backend note:
- *
- * This router is the sample API contract for the example backend slice. It is
- * intentionally small so the template shows how procedures hang together,
- * while still making it obvious that a consuming app can replace the whole
- * router with its own CPQ contract surface.
+ * TEMPLATE EXAMPLE ONLY. This Notes and Todos router demonstrates transport
+ * wiring. Replace its procedures when the real product API is implemented.
  */
 
 const t = initTRPC.create();
 
-/**
- * Maps typed app errors into tRPC errors for transport.
- */
 function toTrpcError(error: AppError): TRPCError {
   if (error.type === "VALIDATION_ERROR") {
-    return new TRPCError({
-      code: "BAD_REQUEST",
-      message: error.message,
-    });
+    return new TRPCError({ code: "BAD_REQUEST", message: error.message });
   }
 
-  return new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: error.message,
-  });
+  return new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
 }
 
-/**
- * Minimal template router with one related CPQ estimate example flow.
- * The procedures below are sample-only and exist to show wiring, not product
- * opinion.
- */
 export const appRouter = t.router({
-  listEstimates: t.procedure.input(ListEstimatesInputSchema.optional()).query(async ({ input }) => {
-    const result = await listEstimates(input ?? { limit: DEFAULT_ESTIMATE_PAGE_SIZE });
-    if (result.isErr()) {
-      throw toTrpcError(result.error);
-    }
-
+  listTodos: t.procedure.input(ListTodosInputSchema.optional()).query(async ({ input }) => {
+    const result = await listTodos(input ?? { limit: DEFAULT_TODO_PAGE_SIZE });
+    if (result.isErr()) throw toTrpcError(result.error);
     return result.value;
   }),
 
-  createEstimate: t.procedure.input(CreateEstimateInputSchema).mutation(async ({ input }) => {
-    const result = await createEstimate(input);
-    if (result.isErr()) {
-      throw toTrpcError(result.error);
-    }
-
+  createTodo: t.procedure.input(CreateTodoInputSchema).mutation(async ({ input }) => {
+    const result = await createTodo(input);
+    if (result.isErr()) throw toTrpcError(result.error);
     return result.value;
   }),
 });

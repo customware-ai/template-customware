@@ -33,9 +33,9 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 ## BetterResult Error Handling
 
 - Use `better-result` for owned fallible work: domain operations, orchestration, IO, parsing, validation, persistence, serialization, and state transitions. Pure total transforms and accessors do not need a `Result`.
-- Wrap synchronous throw boundaries with `Result.try(...)` and Promise rejection boundaries with `Result.tryPromise(...)`. Map `unknown` once into a meaningful tagged or structured error at the boundary that understands it.
+- Wrap synchronous throw boundaries with `Result.try(...)` and Promise rejection boundaries with `Result.tryPromise(...)`. Every owned fallible helper exposes that Result contract itself; do not rely on one caller to wrap a raw throwing helper. Map `unknown` once into a meaningful tagged or structured error at the boundary that understands it.
 - For an owned Zod boundary, call `Schema.parse(...)` inside `Result.try(...)` so parsing has the same Result contract as other fallible work. Do not also validate a value already parsed by tRPC or another owning framework boundary.
-- Compose dependent work with `Result.gen(...)`, `yield*`, and `Result.await(...)`. Use `map`, `mapError`, `andThen`, or `andThenAsync` for short transformations. Never throw an expected failure from inside a Result flow.
+- Compose dependent work with `Result.gen(...)`, `yield*`, and `Result.await(...)`. Combine independent Result operations with `Result.all` or `Result.allAsync`; do not use `Promise.all` as a substitute for typed failure composition. Use `map`, `mapError`, `andThen`, or `andThenAsync` for short transformations. Never throw an expected failure from inside a Result flow.
 - Use `Result.tryPromise` retry options only for idempotent operations that are safe to repeat. Keep retries bounded, use backoff, and pass its attempt `signal` to the underlying cancellation-aware API. Supplying a signal to BetterResult does not cancel active IO unless it is forwarded.
 - Check `.isErr()` or `.isOk()` before accessing a branch, or use exhaustive `match`. Translate internal failures into actionable, non-technical UI messages and never expose database errors, stacks, credentials, or sensitive values.
 - Treat `Panic` and invariant violations as defects, not expected error variants. Do not widen every Result error to `unknown` or `Error` merely because an underlying dependency can throw.
@@ -51,18 +51,18 @@ This file and `application-design.md` are system-admin-owned engineering guideli
 
 ### BetterResult Patterns
 
-Parse an owned boundary once and map the thrown library error into a stable application error:
+Parse an owned Notes API boundary once and map the thrown library error into a stable application error:
 
 ```ts
-const CustomerSchema = z.object({ id: z.string().uuid(), name: z.string().min(1) });
-type Customer = z.infer<typeof CustomerSchema>;
+const NoteSchema = z.object({ id: z.string().uuid(), title: z.string().min(1) });
+type Note = z.infer<typeof NoteSchema>;
 
-function parseCustomer(input: unknown): Result<Customer, ValidationError> {
+function parseNote(input: unknown): Result<Note, ValidationError> {
   return Result.try({
-    try: () => CustomerSchema.parse(input),
+    try: () => NoteSchema.parse(input),
     catch: (cause) => ({
       type: "VALIDATION_ERROR",
-      message: "Customer data is invalid.",
+      message: "Note data is invalid.",
       issues: cause instanceof z.ZodError ? cause.issues : [],
     }),
   });
@@ -72,14 +72,16 @@ function parseCustomer(input: unknown): Result<Customer, ValidationError> {
 Bound retries and forward BetterResult's attempt signal to the underlying request:
 
 ```ts
-function loadCustomer(
+function loadNote(
+  noteId: string,
   signal: AbortSignal,
-): Promise<Result<Customer, RequestError | ValidationError>> {
+): Promise<Result<Note, RequestError | ValidationError>> {
   return Result.gen(async function* () {
     const response = yield* Result.await(
       Result.tryPromise(
         {
-          try: ({ signal: attemptSignal }) => fetch("/api/customer", { signal: attemptSignal }),
+          try: ({ signal: attemptSignal }) =>
+            fetch(`/api/notes/${noteId}`, { signal: attemptSignal }),
           catch: (cause) => new RequestError({ cause }),
         },
         {
@@ -95,17 +97,39 @@ function loadCustomer(
       }),
     );
 
-    return parseCustomer(input);
+    return parseNote(input);
   });
 }
 ```
 
-Examples in this repository show the intended patterns:
+Wrap independent fallible operations separately, then combine their Results concurrently. Do not hide raw rejecting promises inside `Promise.all`, and do not pass raw promises to `Result.allAsync` because a rejection there is a `Panic`:
 
-- `packages/shared/src/index.ts` defines a shared Result type and maps schema failures.
-- `apps/app/app/lib/health.ts` defines a tagged error and combines bounded retry with cancellation.
-- `apps/api/src/services/estimate.ts` composes validation, queries, and result mapping.
-- `apps/api/src/db/queries/estimates.ts` maps database rejection at its owning boundary.
+```ts
+function loadWorkspace(): Promise<Result<{ notes: Note[]; todos: Todo[] }, DatabaseError>> {
+  return Result.gen(async function* () {
+    const [notes, todos] = yield* Result.await(
+      Result.allAsync([
+        Result.tryPromise({
+          try: () => db.select().from(noteTable),
+          catch: (cause) => databaseError("Failed to load notes", cause),
+        }),
+        Result.tryPromise({
+          try: () => db.select().from(todoTable),
+          catch: (cause) => databaseError("Failed to load todos", cause),
+        }),
+      ] as const),
+    );
+
+    return Result.ok({ notes, todos });
+  });
+}
+```
+
+Use `Result.all` for synchronous Result collections when every item must be valid:
+
+```ts
+const todos = yield * Result.all(todoRows.map(parseTodo));
+```
 
 For the installed API, inspect `node_modules/better-result/README.md`, `dist/index.d.mts`, and `dist/index.mjs`. The official reference is <https://better-result.dev/reference/result>.
 
@@ -130,13 +154,13 @@ For the installed API, inspect `node_modules/better-result/README.md`, `dist/ind
 - Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as Recharts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
 
 ```tsx
-// Recharts is large and this chart is not required for first paint.
-const RevenueChart = lazy(() => import("./revenue-chart"));
+// Recharts is large and this todo activity chart is not required for first paint.
+const TodoActivityChart = lazy(() => import("./todo-activity-chart"));
 
-function AnalyticsPanel(): ReactElement {
+function TodoAnalyticsPanel(): ReactElement {
   return (
     <Suspense fallback={<ChartSkeleton />}>
-      <RevenueChart />
+      <TodoActivityChart />
     </Suspense>
   );
 }

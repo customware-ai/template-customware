@@ -22,7 +22,6 @@ import { trpcServer } from "@hono/trpc-server";
 import { APP_NAME, type HealthResponse } from "@template-customware/shared";
 import { Result } from "better-result";
 import { Hono } from "hono";
-import { secureHeaders } from "hono/secure-headers";
 
 import {
   installProcessErrorHandlers,
@@ -63,12 +62,6 @@ const app = new Hono();
  * Do NOT remove this call. Without it, fatal backend failures bypass logging.
  */
 installProcessErrorHandlers();
-
-// ============================================================
-// MIDDLEWARE
-// ============================================================
-
-app.use("/*", secureHeaders({ xFrameOptions: false }));
 
 // ============================================================
 // tRPC API ENDPOINT

@@ -49,16 +49,6 @@ let sqlite: BetterSqliteDatabase | null = null;
 let db: DatabaseClient | null = null;
 
 /**
- * Ensures the local database directory exists before opening sqlite.
- */
-function ensureDatabaseDirectory(databaseFilePath: string): void {
-  const directory = path.dirname(databaseFilePath);
-  if (!existsSync(directory)) {
-    mkdirSync(directory, { recursive: true });
-  }
-}
-
-/**
  * Initializes sqlite and Drizzle once per process.
  */
 export function initializeDatabase(): Result<DatabaseClient, DatabaseError> {
@@ -70,7 +60,8 @@ export function initializeDatabase(): Result<DatabaseClient, DatabaseError> {
   return Result.try({
     try: () => {
       const databaseFilePath = getDatabaseFilePath();
-      ensureDatabaseDirectory(databaseFilePath);
+      const directory = path.dirname(databaseFilePath);
+      if (!existsSync(directory)) mkdirSync(directory, { recursive: true });
 
       openingSqlite = new BetterSqlite3(databaseFilePath);
       openingSqlite.pragma("foreign_keys = ON");

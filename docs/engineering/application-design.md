@@ -58,14 +58,18 @@ Prefer one joined or batched query over per-row work:
 
 ```ts
 // Good: the database returns the display shape in one bounded operation.
-const rows = await db
-  .select({ taskId: tasks.id, title: tasks.title, assigneeName: users.name })
-  .from(tasks)
-  .leftJoin(users, eq(tasks.assigneeId, users.id))
-  .where(and(eq(tasks.projectId, projectId), eq(tasks.status, "open")))
-  .limit(pageSize + 1);
+const rowsResult = Result.tryPromise({
+  try: () =>
+    db
+      .select({ todoId: todos.id, title: todos.title, noteTitle: notes.title })
+      .from(todos)
+      .leftJoin(notes, eq(todos.noteId, notes.id))
+      .where(eq(todos.completed, false))
+      .limit(pageSize + 1),
+  catch: (cause) => databaseError("Failed to list todos", cause),
+});
 
-// Avoid: list tasks, then query the assignee once for every task.
+// Avoid: list todos, then query the linked note once for every todo.
 ```
 
 ## Pagination and Bounded Reads
@@ -84,17 +88,21 @@ A cursor must mirror the complete deterministic ordering:
 ```ts
 const afterCursor = cursor
   ? or(
-      gt(records.createdAt, cursor.createdAt),
-      and(eq(records.createdAt, cursor.createdAt), gt(records.id, cursor.id)),
+      gt(todos.createdAt, cursor.createdAt),
+      and(eq(todos.createdAt, cursor.createdAt), gt(todos.id, cursor.id)),
     )
   : undefined;
 
-const rows = await db
-  .select()
-  .from(records)
-  .where(and(scopeFilter, afterCursor))
-  .orderBy(asc(records.createdAt), asc(records.id))
-  .limit(pageSize + 1);
+const rowsResult = Result.tryPromise({
+  try: () =>
+    db
+      .select()
+      .from(todos)
+      .where(and(scopeFilter, afterCursor))
+      .orderBy(asc(todos.createdAt), asc(todos.id))
+      .limit(pageSize + 1),
+  catch: (cause) => databaseError("Failed to list todos", cause),
+});
 ```
 
 Return at most `pageSize` rows. Use the extra row only to determine whether a next cursor exists.
@@ -111,12 +119,16 @@ Return at most `pageSize` rows. Use the extra row only to determine whether a ne
 Keep one atomic business change inside its owning transaction:
 
 ```ts
-const result = database.transaction((tx) => {
-  const order = tx.insert(orders).values(orderInput).returning().get();
-  tx.insert(orderItems)
-    .values(items.map((item) => ({ ...item, orderId: order.id })))
-    .run();
-  return order;
+const result = Result.try({
+  try: () =>
+    database.transaction((tx) => {
+      const note = tx.insert(notes).values(noteInput).returning().get();
+      tx.insert(todos)
+        .values(todoInputs.map((todo) => ({ ...todo, noteId: note.id })))
+        .run();
+      return note;
+    }),
+  catch: (cause) => databaseError("Failed to create note and todos", cause),
 });
 ```
 
@@ -145,42 +157,44 @@ Network calls and other retryable IO stay outside the transaction.
 Use an infinite query when the server returns a cursor:
 
 ```tsx
-const input = { projectId, limit: 25 };
-const tasks = trpc.tasks.list.useInfiniteQuery(input, {
+const input = { noteId, limit: 25 };
+const todos = trpc.todos.list.useInfiniteQuery(input, {
   getNextPageParam: (page) => page.nextCursor ?? undefined,
   staleTime: 30_000,
 });
 
-const visibleTasks = tasks.data?.pages.flatMap((page) => page.items) ?? [];
+const visibleTodos = todos.data?.pages.flatMap((page) => page.items) ?? [];
 ```
 
 For predictable changes, update the cache optimistically and keep a rollback snapshot:
 
 ```tsx
 const utils = trpc.useUtils();
-const updateTask = trpc.tasks.update.useMutation({
+const updateTodo = trpc.todos.update.useMutation({
   onMutate: async (change) => {
-    await utils.tasks.list.cancel(input);
-    const previous = utils.tasks.list.getInfiniteData(input);
-    utils.tasks.list.setInfiniteData(input, (current) => applyTaskChange(current, change));
+    await utils.todos.list.cancel(input);
+    const previous = utils.todos.list.getInfiniteData(input);
+    utils.todos.list.setInfiniteData(input, (current) => applyTodoChange(current, change));
     return { previous };
   },
   onError: (_error, _change, context) => {
-    utils.tasks.list.setInfiniteData(input, context?.previous);
+    utils.todos.list.setInfiniteData(input, context?.previous);
   },
-  onSuccess: (savedTask) => {
-    utils.tasks.list.setInfiniteData(input, (current) => reconcileTask(current, savedTask));
+  onSuccess: (savedTodo) => {
+    utils.todos.list.setInfiniteData(input, (current) => reconcileTodo(current, savedTodo));
   },
-  onSettled: () => utils.tasks.list.invalidate(input),
+  onSettled: () => utils.todos.list.invalidate(input),
 });
 ```
 
 ## Migrations and Data Evolution
 
+- Finish the intended schema, relationships, constraints, indexes, and data ownership before generating a migration. Do not generate migrations from partial design and then stack corrective migrations for mistakes found during the same unshipped implementation.
 - Change the Drizzle schema first, then generate migrations with `pnpm db:generate`.
 - Review generated SQL and keep the SQL file, snapshot metadata, and migration journal consistent.
 - Apply migrations with `pnpm db:migrate`; never mutate production schema manually.
 - Treat unexpected follow-up generation as schema drift and fix it before completion.
+- Before a migration has been applied anywhere, consolidate corrections to its unshipped schema into one clean change. Never rewrite an already-applied migration; append one deliberate forward migration unless the owning environment lifecycle explicitly recreates the database. Once data is durable or deployed, preserve it deliberately.
 - Preserve existing data deliberately when changing a required column, relationship, identifier, or representation. Use an explicit backfill and staged constraint change when one atomic migration cannot do so safely.
 - Do not combine unrelated schema changes in one migration.
 - Seed and fixture data are not schema migrations.

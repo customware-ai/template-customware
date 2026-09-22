@@ -1,13 +1,14 @@
 /**
  * Template backend note:
  *
- * These error contracts are sample-only helpers for the example API slice.
+ * TEMPLATE EXAMPLE ONLY. These error contracts support the Notes and Todos
+ * example API slice. Replace them with the real product's error contracts.
  * They show how the service layer maps database and validation failures into a
  * typed transport-friendly shape.
  */
 
 /**
- * Typed database failure contract for the sample backend slice.
+ * Typed database failure contract for the example backend slice.
  */
 export type DatabaseError = {
   type: "DATABASE_ERROR";
@@ -16,7 +17,7 @@ export type DatabaseError = {
 };
 
 /**
- * Converts an unknown database failure into the sample database contract.
+ * Converts an unknown database failure into the example database contract.
  */
 export function databaseError(message: string, cause: unknown): DatabaseError {
   return {

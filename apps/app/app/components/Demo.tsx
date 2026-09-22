@@ -1,10 +1,9 @@
 "use client";
 
 /**
- * REFERENCE UI ONLY.
- * Keep this component available while implementing the task, then
- * remove it and `components/demo/` at the very end after the product UI and its
- * documentation have been completed and verified.
+ * TEMPLATE EXAMPLE ONLY. Use this component to learn the shipped UI patterns,
+ * then remove it and `components/demo/` after the real product UI is complete,
+ * documented, and verified.
  */
 
 import { lazy, Suspense, type ReactElement, useState } from "react";

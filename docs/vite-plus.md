@@ -9,7 +9,6 @@ The repository pins Vite+ `0.3.3`; its matching `@voidzero-dev/vite-plus-core` p
 - `pnpm dev` starts the app and API development tasks in parallel.
 - `pnpm build` asks Vite+ for the deployable build task.
 - `pnpm check` generates React Router types, then checks formatting, lint, and TypeScript.
-- `pnpm format` applies formatting.
 - `pnpm test` runs the existing tests.
 - `pnpm prepare` refreshes Vite+ hooks and agent integration.
 

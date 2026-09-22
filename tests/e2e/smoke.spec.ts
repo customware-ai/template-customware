@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+/** TEMPLATE EXAMPLE ONLY. Replace this smoke test with the real product flow. */
 test("loads the template and changes its color theme", async ({ page }) => {
   await page.goto("/");
 

@@ -44,17 +44,9 @@ const LOG_PREFIX: Record<LogSource, "app logs" | "server logs"> = {
  */
 const DEFAULT_RUNTIME_LOG_FILE = ".runtime.logs";
 
-/**
- * Resolve full log file path and ensure parent directory exists.
- */
+/** Resolves the runtime log path without performing IO. */
 function getLogFilePath(): string {
-  const logFilePath = path.resolve(process.cwd(), DEFAULT_RUNTIME_LOG_FILE);
-  const directory = path.dirname(logFilePath);
-  if (!existsSync(directory)) {
-    mkdirSync(directory, { recursive: true });
-  }
-
-  return logFilePath;
+  return path.resolve(process.cwd(), DEFAULT_RUNTIME_LOG_FILE);
 }
 
 /**
@@ -115,6 +107,8 @@ function persistLogEntry(
       };
 
       const filePath = getLogFilePath();
+      const directory = path.dirname(filePath);
+      if (!existsSync(directory)) mkdirSync(directory, { recursive: true });
       const line = formatLogLine(normalized);
       const priorContent = existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
       const priorLines = priorContent

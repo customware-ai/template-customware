@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6c252de5-4a25-4187-8f4b-a4f5815c9cd5",
+  "id": "85ea1dde-46d0-47e6-bdb0-8eacaa27dba0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "estimates": {
-      "name": "estimates",
+    "notes": {
+      "name": "notes",
       "columns": {
         "id": {
           "name": "id",
@@ -14,72 +14,75 @@
           "notNull": true,
           "autoincrement": true
         },
-        "estimate_number": {
-          "name": "estimate_number",
+        "title": {
+          "name": "title",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "account_name": {
-          "name": "account_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "project_name": {
-          "name": "project_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "status": {
-          "name": "status",
+        "body": {
+          "name": "body",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'draft'"
+          "default": "''"
         },
-        "workflow_stage": {
-          "name": "workflow_stage",
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "todos": {
+      "name": "todos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "note_id": {
+          "name": "note_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "item_count": {
-          "name": "item_count",
+        "completed": {
+          "name": "completed",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 0
-        },
-        "total_value": {
-          "name": "total_value",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "margin_percent": {
-          "name": "margin_percent",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -99,23 +102,28 @@
         }
       },
       "indexes": {
-        "idx_estimates_status": {
-          "name": "idx_estimates_status",
-          "columns": ["status"],
+        "idx_todos_note": {
+          "name": "idx_todos_note",
+          "columns": ["note_id"],
           "isUnique": false
         },
-        "idx_estimates_number": {
-          "name": "idx_estimates_number",
-          "columns": ["estimate_number"],
-          "isUnique": false
-        },
-        "idx_estimates_account": {
-          "name": "idx_estimates_account",
-          "columns": ["account_name"],
+        "idx_todos_completed_created": {
+          "name": "idx_todos_completed_created",
+          "columns": ["completed", "created_at", "id"],
           "isUnique": false
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "todos_note_id_notes_id_fk": {
+          "name": "todos_note_id_notes_id_fk",
+          "tableFrom": "todos",
+          "tableTo": "notes",
+          "columnsFrom": ["note_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

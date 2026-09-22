@@ -5,7 +5,7 @@ Template Customware is the reusable full-stack starting point for Customware pro
 ## Implemented Foundation
 
 - React 19 SPA with React Router 8, a wired tRPC/TanStack Query client, shadcn Base UI components, and Tailwind CSS v4
-- Hono API with typed tRPC procedures and a bounded cursor-pagination example
+- Hono API with a typed Notes and Todos tRPC example, relational persistence, and bounded cursor pagination
 - SQLite persistence with Drizzle migrations
 - pnpm workspaces for `apps/*` and `packages/*`
 - source-level shared contracts under `packages/shared`

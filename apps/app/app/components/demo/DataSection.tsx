@@ -7,21 +7,47 @@ import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
 import { trpc } from "~/lib/trpc";
 
-const ESTIMATE_QUERY_INPUT = { limit: 5 } as const;
+/**
+ * TEMPLATE EXAMPLE ONLY. This Notes and Todos panel demonstrates typed server
+ * state. Remove it with the rest of the demo when the product UI replaces it.
+ */
 
-/** Demonstrates typed cursor pagination, mutation, and focused cache invalidation. */
+const TODO_QUERY_INPUT = { limit: 5 } as const;
+
 export function DataSection(): ReactElement {
   const utils = trpc.useUtils();
-  const estimates = trpc.listEstimates.useInfiniteQuery(ESTIMATE_QUERY_INPUT, {
+  const todos = trpc.listTodos.useInfiniteQuery(TODO_QUERY_INPUT, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 30_000,
   });
-  const createEstimate = trpc.createEstimate.useMutation({
-    onSuccess: async () => {
-      await utils.listEstimates.invalidate(ESTIMATE_QUERY_INPUT);
+  const createTodo = trpc.createTodo.useMutation({
+    onSuccess: (createdTodo) => {
+      utils.listTodos.setInfiniteData(TODO_QUERY_INPUT, (current) => {
+        const firstPage = current?.pages[0];
+        if (!current || !firstPage) return current;
+
+        const combined = [
+          createdTodo,
+          ...firstPage.items.filter((todo) => todo.id !== createdTodo.id),
+        ];
+        const items = combined.slice(0, TODO_QUERY_INPUT.limit);
+        const lastItem = items.at(-1);
+        const nextCursor =
+          (combined.length > TODO_QUERY_INPUT.limit || firstPage.nextCursor) && lastItem
+            ? { created_at: lastItem.created_at, id: lastItem.id }
+            : null;
+
+        return {
+          ...current,
+          pages: [{ ...firstPage, items, nextCursor }, ...current.pages.slice(1)],
+        };
+      });
+    },
+    onSettled: async () => {
+      await utils.listTodos.invalidate(TODO_QUERY_INPUT);
     },
   });
-  const items = estimates.data?.pages.flatMap((page) => page.items) ?? [];
+  const items = todos.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
     <Section
@@ -29,26 +55,28 @@ export function DataSection(): ReactElement {
       description="tRPC and TanStack Query with bounded cursor pagination and cache reconciliation."
     >
       <ShowcaseCard
-        title="Estimate query"
+        title="Notes and Todos query"
         description="Cached data stays visible while background refreshes run."
       >
-        {estimates.isPending ? (
-          <p className="text-sm text-muted-foreground">Loading estimates…</p>
-        ) : estimates.isError ? (
+        {todos.isPending ? (
+          <p className="text-sm text-muted-foreground">Loading todos…</p>
+        ) : todos.isError ? (
           <div className="space-y-3">
-            <p className="text-sm text-destructive">Estimates could not be loaded.</p>
-            <Button variant="outline" onClick={() => void estimates.refetch()}>
+            <p className="text-sm text-destructive">Todos could not be loaded.</p>
+            <Button variant="outline" onClick={() => void todos.refetch()}>
               Retry
             </Button>
           </div>
         ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No estimates yet.</p>
+          <p className="text-sm text-muted-foreground">No todos yet.</p>
         ) : (
           <ul className="grid gap-2 text-sm">
-            {items.map((estimate) => (
-              <li key={estimate.id} className="rounded-lg border border-border px-3 py-2">
-                <span className="font-medium">{estimate.estimate_number}</span>
-                <span className="ml-2 text-muted-foreground">{estimate.project_name}</span>
+            {items.map((todo) => (
+              <li key={todo.id} className="rounded-lg border border-border px-3 py-2">
+                <span className="font-medium">{todo.title}</span>
+                {todo.note && (
+                  <span className="ml-2 text-muted-foreground">Note: {todo.note.title}</span>
+                )}
               </li>
             ))}
           </ul>
@@ -57,35 +85,33 @@ export function DataSection(): ReactElement {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            disabled={createEstimate.isPending}
+            disabled={createTodo.isPending}
             onClick={() =>
-              createEstimate.mutate({
-                estimate_number: `DEMO-${Date.now()}`,
-                account_name: "Template account",
-                project_name: "Typed API example",
-                workflow_stage: "Draft",
-                item_count: 1,
-                total_value: 1_000,
-                margin_percent: 25,
+              createTodo.mutate({
+                title: `Review the demo patterns ${Date.now()}`,
+                note: {
+                  title: "Template example",
+                  body: "Replace this sample with the real product domain.",
+                },
               })
             }
           >
-            {createEstimate.isPending && <Spinner />}
-            {createEstimate.isPending ? "Creating estimate" : "Create sample estimate"}
+            {createTodo.isPending && <Spinner />}
+            {createTodo.isPending ? "Creating todo" : "Create sample todo"}
           </Button>
-          {estimates.hasNextPage && (
+          {todos.hasNextPage && (
             <Button
               variant="outline"
-              disabled={estimates.isFetchingNextPage}
-              onClick={() => void estimates.fetchNextPage()}
+              disabled={todos.isFetchingNextPage}
+              onClick={() => void todos.fetchNextPage()}
             >
-              {estimates.isFetchingNextPage && <Spinner />}
-              {estimates.isFetchingNextPage ? "Loading more" : "Load more"}
+              {todos.isFetchingNextPage && <Spinner />}
+              {todos.isFetchingNextPage ? "Loading more" : "Load more"}
             </Button>
           )}
         </div>
-        {createEstimate.isError && (
-          <p className="text-sm text-destructive">The estimate could not be created.</p>
+        {createTodo.isError && (
+          <p className="text-sm text-destructive">The todo could not be created.</p>
         )}
       </ShowcaseCard>
     </Section>

@@ -45,6 +45,8 @@ When using an installed package, verify unfamiliar or uncertain behavior from th
 
 Add a package only for a real cross-workspace boundary. Keep browser-only and server-only code in their owning application.
 
+The UI catalog and Notes and Todos API are temporary teaching examples. Follow the task-intent cleanup requirements in `README.md`; learning from an example does not authorize retaining its sample domain, records, routes, or migrations in the finished product.
+
 ## Build and Development Commands
 
 For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
@@ -53,7 +55,6 @@ For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
 - `pnpm build` – Builds `build/client` and `build/server`.
 - `pnpm start` – Runs the built Hono server.
 - `pnpm check` – Runs React Router type generation plus Vite+ formatting, linting, and type diagnostics.
-- `pnpm format` – Applies Vite+ formatting.
 - `pnpm test` – Runs the existing unit and integration suite through Vite+.
 - `pnpm db:generate` – Generates Drizzle migrations from schema changes.
 - `pnpm db:migrate` – Applies SQLite migrations.
