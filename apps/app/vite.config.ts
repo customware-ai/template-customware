@@ -46,7 +46,7 @@ function brotliAssets(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   run: {
     tasks: {
       build: {
@@ -74,11 +74,15 @@ export default defineConfig({
     chunkSizeWarningLimit: 200,
     emptyOutDir: true,
   },
-  plugins: [tailwindcss(), reactRouter(), react({ compiler: true }), brotliAssets()],
+  plugins: [
+    tailwindcss(),
+    reactRouter(),
+    ...(command === "build" ? react({ compiler: true }) : []),
+    brotliAssets(),
+  ],
   resolve: {
     tsconfigPaths: true,
   },
-  ssr: {
-    noExternal: true,
-  },
-});
+  ssr: command === "build" ? { noExternal: true } : undefined,
+  preview: { host: "127.0.0.1" },
+}));

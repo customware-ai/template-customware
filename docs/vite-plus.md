@@ -43,3 +43,11 @@ Use the installed-version documentation before relying on memory:
 - automatic tracking: `node_modules/vite-plus/docs/guide/automatic-data-tracking.md`
 - task configuration: `node_modules/vite-plus/docs/config/run.md`
 - official documentation: <https://viteplus.dev/guide/>
+
+## Front-end Development
+
+`pnpm --filter @template-customware/app dev` runs only the browser app, with React Router owning development React transforms and Fast Refresh. The standalone React plugin and React Compiler run only for production builds; enabling both refresh implementations in development redeclares `RefreshRuntime` and prevents the app from loading. Production builds retain React Compiler optimization.
+
+`ssr.noExternal` is build-only. Development leaves package dependencies external so the React Router dev server can load CommonJS packages such as React through Node rather than executing them as unconverted ES modules. Production prerender previews bind explicitly to `127.0.0.1` to keep their listener and requests on the same address family.
+
+The full `pnpm dev` command additionally starts the API on 8080. The front-end-only command needs local mock data when no API is running. A sandbox may select its own front-end host and port with `--host 0.0.0.0 --port 8080 --strictPort`; its public proxy must also configure the allowed hostname and WebSocket HMR origin.

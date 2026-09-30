@@ -14,6 +14,8 @@ This is not an upgrade guide: the repository already uses React Router 8. The co
 
 `apps/app/react-router.config.ts` sets `ssr: false`, so this remains a browser-rendered SPA. Framework Mode does not imply server rendering.
 
+`apps/app/app/lib/trpc.ts` explicitly names its public `CreateTRPCReact<AppRouter, unknown>` contract so composite TypeScript checking does not infer a private dependency declaration path. TypeScript incremental build metadata is ignored rather than included in project source.
+
 `apps/app/app/components/app-providers.tsx` owns the single TanStack Query and tRPC clients. `apps/app/app/lib/trpc.ts` creates the typed hooks from the API package's public router type, and `root.tsx` mounts those providers once for the browser runtime. The type-only API import is erased from the client build; browser code must never import server implementation values.
 
 ## Current v8 Behavior
