@@ -46,7 +46,7 @@ const DEFAULT_RUNTIME_LOG_FILE = ".runtime.logs";
 
 /** Resolves the runtime log path without performing IO. */
 function getLogFilePath(): string {
-  return path.resolve(process.cwd(), DEFAULT_RUNTIME_LOG_FILE);
+  return path.resolve(process.cwd(), process.env.RUNTIME_LOG_FILE_PATH ?? DEFAULT_RUNTIME_LOG_FILE);
 }
 
 /**

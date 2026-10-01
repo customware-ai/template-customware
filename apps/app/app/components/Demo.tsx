@@ -91,7 +91,7 @@ export default function Demo(): ReactElement {
               });
             }}
           />
-          <DataSection />
+          {import.meta.env.VITE_UI_ONLY !== "true" && <DataSection />}
           <IdentitySection />
           <ActionsSection
             dateValue={dateValue}

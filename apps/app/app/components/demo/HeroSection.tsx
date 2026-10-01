@@ -23,7 +23,8 @@ export function HeroSection({
 }): ReactElement {
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
 
-  useEffect((): (() => void) => {
+  useEffect((): (() => void) | undefined => {
+    if (import.meta.env.VITE_UI_ONLY === "true") return;
     const controller = new AbortController();
 
     void fetchHealth(controller.signal).then((result): void => {
@@ -49,11 +50,13 @@ export function HeroSection({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <span aria-live="polite">
-            {apiStatus === "checking"
-              ? "Checking API"
-              : apiStatus === "connected"
-                ? "API connected"
-                : "API unavailable"}
+            {import.meta.env.VITE_UI_ONLY === "true"
+              ? "UI preview"
+              : apiStatus === "checking"
+                ? "Checking API"
+                : apiStatus === "connected"
+                  ? "API connected"
+                  : "API unavailable"}
           </span>
           <span className="hidden text-border sm:inline">/</span>
           <span>Base UI primitives</span>

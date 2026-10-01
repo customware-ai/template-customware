@@ -4,7 +4,7 @@ The template keeps local frontend and backend failures in the ignored root `.run
 
 ## Frontend
 
-`apps/app/app/utils/error-logger.ts` attaches global browser error and unhandled-rejection listeners. It sends structured events to `POST /logs`.
+`apps/app/app/utils/error-logger.ts` attaches global browser error and unhandled-rejection listeners. It sends structured events to `POST /logs`. `apps/api/src/routes/frontend-logs.ts` owns the shared Hono ingestion route and Node listener. The full API mounts this route; frontend-only sandbox previews mount the same listener in Vite middleware, retaining validation and `.runtime.logs` persistence without starting the product API. Its runtime config sets `RUNTIME_LOG_FILE_PATH` to the repository-root `.runtime.logs`, since the frontend command runs from the app workspace. Other runtimes retain the default current-directory log path. This prevents log requests from reaching React Router as route actions.
 
 ## Backend
 

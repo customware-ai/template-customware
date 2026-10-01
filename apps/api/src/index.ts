@@ -23,11 +23,8 @@ import { APP_NAME, type HealthResponse } from "@template-customware/shared";
 import { Result } from "better-result";
 import { Hono } from "hono";
 
-import {
-  installProcessErrorHandlers,
-  logFrontendPayload,
-  logServerPayload,
-} from "./services/logging.js";
+import { frontendLogs } from "./routes/frontend-logs.js";
+import { installProcessErrorHandlers, logServerPayload } from "./services/logging.js";
 import { appRouter } from "./trpc/router.js";
 
 const CLIENT_DIR = path.resolve(process.cwd(), "build", "client");
@@ -91,20 +88,7 @@ app.use(
  * @important
  * Do NOT remove this endpoint (`POST /logs`).
  */
-app.post("/logs", async (c) => {
-  const payload = await Result.tryPromise(() => c.req.json());
-  if (payload.isErr()) {
-    return c.json({ message: "Invalid JSON payload for /logs." }, 400);
-  }
-
-  const result = logFrontendPayload(payload.value);
-  if (result.isErr()) {
-    const status = result.error.type === "LOG_VALIDATION_ERROR" ? 400 : 500;
-    return c.json({ message: result.error.message }, status);
-  }
-
-  return c.json({ ok: true });
-});
+app.route("/logs", frontendLogs);
 
 // ============================================================
 // HEALTH CHECK

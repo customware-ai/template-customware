@@ -21,6 +21,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { Toaster } from "./components/ui/toast";
+import { useDevelopmentErrorRecovery } from "./utils/dev-error-recovery";
 import { attachGlobalFrontendErrorHandlers, logFrontendError } from "./utils/error-logger";
 
 export function Layout({ children }: { children: ReactNode }): ReactElement {
@@ -128,6 +129,8 @@ export default function App(): ReactElement {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement {
+  useDevelopmentErrorRecovery();
+
   // Log error for monitoring
   logFrontendError(error instanceof Error ? error.message : "Route error", {
     type: "route-error",
@@ -148,7 +151,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
             <p className="text-muted-foreground">
               {error.statusText || "The requested page could not be found."}
             </p>
-            <Button render={<a href="/" aria-label="Go home" />} className="mt-6">
+            <Button
+              nativeButton={false}
+              render={<a href="/" aria-label="Go home" />}
+              className="mt-6"
+            >
               Go Home
             </Button>
           </CardContent>
@@ -173,7 +180,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
               {error.stack}
             </pre>
           )}
-          <Button render={<a href="/" aria-label="Go home" />} className="mt-6">
+          <Button
+            nativeButton={false}
+            render={<a href="/" aria-label="Go home" />}
+            className="mt-6"
+          >
             Go Home
           </Button>
         </CardContent>
