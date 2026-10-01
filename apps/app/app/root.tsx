@@ -36,6 +36,7 @@ export function Layout({ children }: { children: ReactNode }): ReactElement {
           dangerouslySetInnerHTML={{ __html: INITIAL_LOADING_STYLES }}
         />
         <Links />
+        {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
         <script
           dangerouslySetInnerHTML={{
             __html: `
