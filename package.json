@@ -5,7 +5,7 @@
   "description": "Full-stack Customware template with a Vite+ monorepo workspace",
   "type": "module",
   "scripts": {
-    "dev": "vp run --parallel --filter @template-customware/api --filter @template-customware/app dev",
+    "dev": "vp run --no-cache --parallel --filter @template-customware/api --filter @template-customware/app dev",
     "build": "vp run --filter @template-customware/api build",
     "start": "node --env-file-if-exists=.env build/server/start.js",
     "start:e2e": "node tests/e2e/server-start.mjs",
