@@ -32,6 +32,8 @@ Do not add `--no-cache`, make both tasks own all of `build/**`, run these produc
 
 The root `vite.config.ts` owns formatting, linting, staged checks, and the repository cache policy. Workspace Vite configs own their tasks and builds. Do not add competing formatter, linter, or hook configuration.
 
+The pnpm catalog centralizes versions shared across manifests: Node types, BetterResult, React, React DOM, TypeScript, Vite, Vite+, and Zod. Frontend-only dependencies pin their versions directly in `apps/app/package.json`. API dependencies remain declared in `apps/api/package.json` for source imports and in root `package.json` for the external runtime imports in `build/server/start.js`.
+
 Task-specific `input`, `output`, and `untrackedEnv` settings belong inside each task's `cache` object in Vite+ 1.1.
 
 Only the project-root `task-workflow/` directory is excluded from lint, the root TypeScript configuration, Vitest discovery, and coverage. Nested directories with that name are not excluded. Application TypeScript projects and Playwright already limit their inputs to their own directories, so they need no additional exclusions.
