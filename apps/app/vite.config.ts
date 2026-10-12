@@ -51,15 +51,19 @@ export default defineConfig(({ command }) => ({
     tasks: {
       build: {
         command: "react-router build",
-        untrackedEnv: ["SHLVL"],
-        input: [{ auto: true }, "!.react-router/**", { pattern: "!build/**", base: "workspace" }],
-        output: [{ pattern: "build/client/**", base: "workspace" }],
+        cache: {
+          untrackedEnv: ["SHLVL"],
+          input: [{ auto: true }, "!.react-router/**", { pattern: "!build/**", base: "workspace" }],
+          output: [{ pattern: "build/client/**", base: "workspace" }],
+        },
       },
       typegen: {
         command: "react-router typegen",
-        untrackedEnv: ["SHLVL"],
-        input: [{ auto: true }, "!.react-router/**"],
-        output: [".react-router/**"],
+        cache: {
+          untrackedEnv: ["SHLVL"],
+          input: [{ auto: true }, "!.react-router/**"],
+          output: [".react-router/**"],
+        },
       },
     },
   },

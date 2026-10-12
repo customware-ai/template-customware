@@ -28,7 +28,7 @@ export default defineConfig({
       typeAware: true,
       typeCheck: true,
     },
-    ignorePatterns: IGNORE_PATTERNS,
+    ignorePatterns: [...IGNORE_PATTERNS, "task-workflow/**"],
     overrides: [
       {
         files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],

@@ -1,5 +1,6 @@
 {
   "files": [],
+  "exclude": ["task-workflow"],
   "references": [
     { "path": "./apps/api/tsconfig.json" },
     { "path": "./apps/app/tsconfig.json" },

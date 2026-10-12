@@ -65,7 +65,7 @@ const OverlaySection = lazy(() =>
 
 export default function Demo(): ReactElement {
   const [commandOpen, setCommandOpen] = useState(false);
-  const [dateValue, setDateValue] = useState<Date | undefined>(new Date());
+  const [dateValue, setDateValue] = useState<Date | undefined>(() => new Date());
   const [comboboxValue, setComboboxValue] = useState("proposal");
   const [progressValue, setProgressValue] = useState(58);
   const [otpValue, setOtpValue] = useState("");

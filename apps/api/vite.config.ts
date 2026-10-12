@@ -10,9 +10,11 @@ export default defineConfig({
       build: {
         command: "vp build",
         dependsOn: ["@template-customware/app#build"],
-        untrackedEnv: ["SHLVL"],
-        input: [{ auto: true }, { pattern: "!build/**", base: "workspace" }],
-        output: [{ pattern: "build/server/**", base: "workspace" }],
+        cache: {
+          untrackedEnv: ["SHLVL"],
+          input: [{ auto: true }, { pattern: "!build/**", base: "workspace" }],
+          output: [{ pattern: "build/server/**", base: "workspace" }],
+        },
       },
     },
   },

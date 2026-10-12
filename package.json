@@ -19,36 +19,36 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@hono/node-server": "2.1.1",
+    "@hono/node-server": "2.1.4",
     "@hono/trpc-server": "0.4.2",
-    "@trpc/server": "11.18.0",
+    "@trpc/server": "11.19.0",
     "better-result": "catalog:",
-    "better-sqlite3": "12.11.1",
-    "dotenv": "17.4.2",
-    "drizzle-orm": "0.45.2",
-    "hono": "4.13.7",
+    "better-sqlite3": "13.0.3",
+    "dotenv": "18.0.7",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.13",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",
-    "@testing-library/dom": "10.4.1",
-    "@testing-library/jest-dom": "6.9.1",
-    "@testing-library/react": "16.3.2",
-    "@testing-library/user-event": "14.6.4",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "catalog:",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
-    "@vitejs/plugin-react": "6.1.1",
-    "drizzle-kit": "0.31.10",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "drizzle-kit": "0.31.11",
     "jsdom": "29.1.1",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tsx": "4.23.12",
+    "tsx": "4.23.15",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {
     "node": ">=24.11.0"
   },
-  "packageManager": "pnpm@12.3.1"
+  "packageManager": "pnpm@12.11.2"
 }

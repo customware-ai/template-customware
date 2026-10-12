@@ -11,21 +11,21 @@
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
-    "@hono/node-server": "2.1.1",
+    "@hono/node-server": "2.1.4",
     "@hono/trpc-server": "0.4.2",
     "@template-customware/shared": "workspace:*",
-    "@trpc/server": "11.18.0",
+    "@trpc/server": "11.19.0",
     "better-result": "catalog:",
-    "better-sqlite3": "12.11.1",
-    "dotenv": "17.4.2",
-    "drizzle-orm": "0.45.2",
-    "hono": "4.13.7",
+    "better-sqlite3": "13.0.3",
+    "dotenv": "18.0.7",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.13",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "7.6.13",
+    "@types/better-sqlite3": "9.6.0",
     "@types/node": "catalog:",
-    "tsx": "4.23.12",
+    "tsx": "4.23.15",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

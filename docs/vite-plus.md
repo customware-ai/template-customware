@@ -2,7 +2,7 @@
 
 Vite+ is the repository's unified web toolchain. Its `vp` CLI brings Vite, Rolldown, Vitest, Oxlint, Oxfmt, TypeScript checking, workspace tasks, caching, and Git-hook integration under one configuration. pnpm still defines and installs the workspace.
 
-The repository pins Vite+ `0.3.3`; its matching `@voidzero-dev/vite-plus-core` package supplies Vite.
+The repository pins Vite+ `1.1.0`; its matching `@voidzero-dev/vite-plus-core` package supplies Vite.
 
 ## Commands
 
@@ -31,6 +31,10 @@ Do not add `--no-cache`, make both tasks own all of `build/**`, run these produc
 ## Configuration and References
 
 The root `vite.config.ts` owns formatting, linting, staged checks, and the repository cache policy. Workspace Vite configs own their tasks and builds. Do not add competing formatter, linter, or hook configuration.
+
+Task-specific `input`, `output`, and `untrackedEnv` settings belong inside each task's `cache` object in Vite+ 1.1.
+
+Only the project-root `task-workflow/` directory is excluded from lint, the root TypeScript configuration, Vitest discovery, and coverage. Nested directories with that name are not excluded. Application TypeScript projects and Playwright already limit their inputs to their own directories, so they need no additional exclusions.
 
 Formatting uses Vite+'s defaults. The root formatting block only excludes generated and temporary paths; it does not override style rules.
 
