@@ -26,7 +26,7 @@ The shipped UI catalog and Notes and Todos API are temporary examples. Study the
 - Use the temporary Notes and Todos slice to understand the intended `contract -> query -> service -> tRPC -> TanStack Query` flow and BetterResult boundaries.
 - Replace the example contracts, active tables, queries, services, procedures, browser calls, tests, E2E seed, and documentation with the real product domain. No `notes`, `todos`, `listTodos`, `createTodo`, sample records, or related runtime behavior should remain unless the product genuinely requires that exact behavior.
 - Design the complete initial product schema before generating its migration. Generate one coherent forward product migration that creates the final schema and drops the temporary Notes and Todos tables; do not generate partial work and stack corrective migrations during the same implementation.
-- Keep bootstrap, seed, and fixture records outside schema migrations. Do not rewrite or remove an already-applied template migration: migration history must remain reproducible even though its temporary tables are removed by the product migration.
+- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. The end-to-end seed is separate and lives only in `tests/e2e`: it runs only on the E2E database, after the migrations, and adds more test records on top of what they inserted. Do not rewrite or remove an already-applied template migration: migration history must remain reproducible even though its temporary tables are removed by the product migration.
 
 ### Before completing the task
 

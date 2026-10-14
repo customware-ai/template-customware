@@ -197,9 +197,9 @@ const updateTodo = trpc.todos.update.useMutation({
 - Before a migration has been applied anywhere, consolidate corrections to its unshipped schema into one clean change. Never rewrite an already-applied migration; append one deliberate forward migration unless the owning environment lifecycle explicitly recreates the database. Once data is durable or deployed, preserve it deliberately.
 - Preserve existing data deliberately when changing a required column, relationship, identifier, or representation. Use an explicit backfill and staged constraint change when one atomic migration cannot do so safely.
 - Do not combine unrelated schema changes in one migration.
-- Seed and fixture data are not schema migrations.
+- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. The end-to-end seed is separate and lives only in `tests/e2e`: it runs only on the E2E database, after the migrations, and adds more test records on top of what they inserted.
 
-The application database is `.dbs/database.db`. Verification may inspect it read-only but must never migrate, seed, reset, truncate, delete, or otherwise mutate it. Verification uses `.dbs/e2e.db` through `E2E_DATABASE_FILE_PATH` or a clearly isolated temporary database.
+The application database is `.dbs/database.db`. Verification may inspect it read-only but must never migrate, seed, reset, truncate, delete, or otherwise mutate it. Verification uses `.dbs/e2e.db` through `E2E_DATABASE_FILE_PATH` or a clearly isolated temporary database. A task sandbox's `.dbs/database.db` is deleted with the sandbox; only committed code reaches the preview.
 
 The shared SQLite connection enables foreign-key enforcement, WAL mode, `NORMAL` synchronization, and a ten-second busy timeout. Keep those production defaults unless measured behavior requires a deliberate change.
 
