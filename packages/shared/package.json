@@ -8,13 +8,13 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "type-check": "tsc --noEmit --project tsconfig.json"
+    "type-check": "tsrs --noEmit --project tsconfig.json"
   },
   "dependencies": {
     "better-result": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "tsrs": "catalog:"
   }
 }

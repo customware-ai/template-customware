@@ -5,14 +5,36 @@ packages:
 minimumReleaseAge: 1
 
 catalog:
+  "@hono/node-server": 2.1.6
+  "@playwright/test": 1.59.1
+  "@react-router/dev": 8.5.1
+  "@react-router/node": 8.5.1
+  "@tailwindcss/vite": 4.3.5
+  "@tanstack/react-query": 5.106.1
+  "@tanstack/react-table": 9.3.1
+  "@testing-library/user-event": 14.6.8
+  "@trpc/client": 11.25.0
+  "@trpc/react-query": 11.25.0
+  "@trpc/server": 11.25.0
   "@types/node": 24.19.2
+  "@vitejs/plugin-react": 6.2.1
   better-result: 3.0.1
-  react: 19.3.0
-  react-dom: 19.3.0
-  typescript: 7.0.2
-  vite: npm:@voidzero-dev/vite-plus-core@1.1.0
-  vite-plus: 1.1.0
-  zod: 4.6.6
+  cn: 0.5.2
+  dotenv: 18.0.9
+  hono: 4.13.16
+  jsdom: 31.0.0
+  lucide-react: 1.70.0
+  oxc-transform-react: 0.156.0
+  react: 19.3.1
+  react-dom: 19.3.1
+  react-resizable-panels: 4.19.0
+  react-router: 8.5.1
+  shadcn: 4.23.0
+  tailwindcss: 4.3.5
+  tsrs: 0.22.0-ts7.1.0-beta
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
+  zod: 4.6.7
 
 catalogMode: prefer
 
@@ -24,8 +46,7 @@ peerDependencyRules:
   allowAny:
     - vite
   allowedVersions:
-    oxc-transform-react: 0.153.0
-    typescript: 7.0.2
+    oxc-transform-react: 0.156.0
     vite: "*"
 
 allowBuilds:

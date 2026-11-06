@@ -8,25 +8,25 @@
   },
   "scripts": {
     "dev": "cd ../.. && tsx watch apps/api/src/start.ts",
-    "type-check": "tsc --noEmit --project tsconfig.json"
+    "type-check": "tsrs --noEmit --project tsconfig.json"
   },
   "dependencies": {
-    "@hono/node-server": "2.1.4",
+    "@hono/node-server": "catalog:",
     "@hono/trpc-server": "0.4.2",
     "@template-customware/shared": "workspace:*",
-    "@trpc/server": "11.19.0",
+    "@trpc/server": "catalog:",
     "better-result": "catalog:",
     "better-sqlite3": "13.0.3",
-    "dotenv": "18.0.7",
+    "dotenv": "catalog:",
     "drizzle-orm": "0.45.4",
-    "hono": "4.13.13",
+    "hono": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "catalog:",
+    "tsrs": "catalog:",
     "tsx": "4.23.15",
-    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   }
