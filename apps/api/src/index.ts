@@ -61,9 +61,7 @@ const app = new Hono();
  */
 installProcessErrorHandlers();
 
-// ============================================================
-// tRPC API ENDPOINT
-// ============================================================
+// tRPC API endpoint
 
 /**
  * Mount tRPC router at /trpc/*
@@ -76,9 +74,7 @@ app.use(
   }),
 );
 
-// ============================================================
-// FRONTEND ERROR INGESTION
-// ============================================================
+// Frontend error ingestion
 
 /**
  * @critical
@@ -91,9 +87,7 @@ app.use(
  */
 app.route("/logs", frontendLogs);
 
-// ============================================================
-// HEALTH CHECK
-// ============================================================
+// Health check
 
 /** Health checks bypass static-file lookup. */
 app.get("/health", (c) => {
@@ -106,9 +100,7 @@ app.get("/health", (c) => {
   return c.json(response);
 });
 
-// ============================================================
-// STATIC FILE SERVING
-// ============================================================
+// Static file serving
 
 /**
  * Serve built client files from the client directory.
@@ -127,9 +119,7 @@ app.use(
   }),
 );
 
-// ============================================================
-// GLOBAL ERROR HANDLING
-// ============================================================
+// Global error handling
 
 /**
  * Centralized server error handler for unhandled app exceptions.
@@ -186,9 +176,7 @@ app.notFound((c) => {
   return c.text("Not Found", 404);
 });
 
-// ============================================================
-// SPA FALLBACK
-// ============================================================
+// SPA fallback
 
 /**
  * Catch-all route for client-side routing
