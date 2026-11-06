@@ -9,18 +9,17 @@ export default defineConfig({
     tasks: {
       build: {
         command: "vp build",
-        dependsOn: ["@template-customware/app#build"],
+        dependsOn: ["@cw/app#build"],
         cache: {
-          untrackedEnv: ["SHLVL"],
-          input: [{ auto: true }, { pattern: "!build/**", base: "workspace" }],
-          output: [{ pattern: "build/server/**", base: "workspace" }],
+          input: [{ auto: true }, "!dist/**", { pattern: "!build/**", base: "workspace" }],
+          output: ["dist/**"],
         },
       },
     },
   },
   build: {
     ssr: true,
-    outDir: "../../build/server",
+    outDir: "dist",
     emptyOutDir: true,
     sourcemap: false,
     minify: "oxc",
@@ -31,7 +30,7 @@ export default defineConfig({
       platform: "node",
       tsconfig: "./tsconfig.json",
       treeshake: true,
-      external: /^(?!(?:@template-customware\/shared)(?:\/|$))[^./]/,
+      external: /^(?!(?:@cw\/shared)(?:\/|$))[^./]/,
       output: {
         format: "esm",
         entryFileNames: "[name].js",

@@ -27,6 +27,7 @@ const BaseLogEntrySchema = z.object({
  */
 export const FrontendLogSchema = BaseLogEntrySchema.extend({
   source: z.literal("app"),
+  message: BaseLogEntrySchema.shape.message.max(4096),
 });
 
 /**

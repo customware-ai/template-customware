@@ -1,6 +1,6 @@
-# Template Customware
+# App Template
 
-A reusable full-stack starting point for building Customware applications.
+A reusable full-stack starting point for apps built with Customware (CW). Customware is the building platform, not the app's identity; use the product's own name and branding.
 
 Before working in this repository, read [AGENTS.md](./AGENTS.md) and [docs/main.md](./docs/main.md).
 

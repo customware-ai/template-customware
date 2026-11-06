@@ -12,6 +12,7 @@ const IGNORE_PATTERNS = [
   "apps/app/.react-router/**",
   "build/**",
   "dist/**",
+  "apps/api/dist/**",
   "**/node_modules/**",
   "playwright-report/**",
   "test-results/**",

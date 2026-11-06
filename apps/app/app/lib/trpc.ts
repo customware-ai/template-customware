@@ -1,4 +1,4 @@
-import type { AppRouter } from "@template-customware/api/trpc";
+import type { AppRouter } from "@cw/api/trpc";
 import { createTRPCReact, type CreateTRPCReact } from "@trpc/react-query";
 
 /** Typed browser access to the API router. */

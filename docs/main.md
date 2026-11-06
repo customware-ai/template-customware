@@ -1,6 +1,6 @@
-# Template Customware
+# App Foundation
 
-Template Customware is the reusable full-stack starting point for Customware projects. It combines the application and API foundation from `template-full-stack` with Customware's pnpm workspace, Vite+, and self-updating documentation model.
+This template is used to build apps with Customware (CW). Customware is the building platform, not the app's name or identity; replace the generic app name with the product's own name and branding. The foundation combines the application and API from `template-full-stack` with Customware's pnpm workspace, Vite+, and self-updating documentation model.
 
 ## Implemented Foundation
 
@@ -13,7 +13,7 @@ Template Customware is the reusable full-stack starting point for Customware pro
 - Zod 4.6 contracts with lazy server compilation; browser schemas keep the standard parser to avoid an 8 KB gzipped compiler payload and `new Function` CSP requirement
 - Vite+ formatting, linting, task orchestration, and hooks, with TSRS (the Rust port of TypeScript) for type checking and type-aware linting
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
-- one deployable output containing `build/client` and `build/server`
+- one deployable application with the client in `build/client` and server in `apps/api/dist`
 
 ## Repository Map
 

@@ -1,7 +1,11 @@
 {
-  "name": "@template-customware/api",
+  "name": "@cw/api",
   "version": "1.0.0",
   "private": true,
+  "files": [
+    "dist",
+    "src"
+  ],
   "type": "module",
   "exports": {
     "./trpc": "./src/trpc/router.ts"
@@ -10,21 +14,21 @@
     "dev": "cd ../.. && tsx watch apps/api/src/start.ts"
   },
   "dependencies": {
-    "@hono/node-server": "catalog:",
+    "@cw/shared": "workspace:*",
+    "@hono/node-server": "2.1.6",
     "@hono/trpc-server": "0.4.2",
-    "@template-customware/shared": "workspace:*",
-    "@trpc/server": "catalog:",
+    "@trpc/server": "11.25.0",
     "better-result": "catalog:",
     "better-sqlite3": "13.0.3",
-    "dotenv": "catalog:",
+    "dotenv": "18.0.9",
     "drizzle-orm": "0.45.4",
-    "hono": "catalog:",
+    "hono": "4.13.16",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "catalog:",
-    "tsx": "4.23.15",
+    "tsx": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   }

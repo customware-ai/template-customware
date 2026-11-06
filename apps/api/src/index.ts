@@ -2,7 +2,7 @@
  * Hono Server Entry Point
  *
  * This file creates the Hono HTTP server that:
- * 1. Serves static frontend assets from ../client/ (relative to server)
+ * 1. Serves static frontend assets from build/client in the working directory
  * 2. Handles tRPC API requests at /trpc/*
  * 3. Captures frontend and backend error events
  * 4. Falls back to index.html for client-side routing
@@ -19,9 +19,10 @@ import * as path from "node:path";
 
 import { serveStatic } from "@hono/node-server/serve-static";
 import { trpcServer } from "@hono/trpc-server";
-import { APP_NAME, type HealthResponse } from "@template-customware/shared";
+import { APP_NAME, type HealthResponse } from "@cw/shared";
 import { Result } from "better-result";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 
 import { frontendLogs } from "./routes/frontend-logs.js";
 import { installProcessErrorHandlers, logServerPayload } from "./services/logging.js";
@@ -140,6 +141,10 @@ app.use(
  * frontend logging.
  */
 app.onError((error, c) => {
+  if (error instanceof HTTPException) {
+    return error.getResponse();
+  }
+
   logServerPayload({
     source: "server",
     level: "error",

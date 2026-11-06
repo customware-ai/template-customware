@@ -18,6 +18,7 @@ logs/
 **/.react-router/
 /build/
 /dist/
+/apps/api/dist/
 /.vitest/
 /playwright-report/
 /test-results/

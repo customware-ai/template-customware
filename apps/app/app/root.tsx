@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_NAME } from "@template-customware/shared";
+import { APP_NAME } from "@cw/shared";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, type ReactElement, type ReactNode } from "react";
 import {

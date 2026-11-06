@@ -52,7 +52,6 @@ export default defineConfig(({ command }) => ({
       build: {
         command: "react-router build",
         cache: {
-          untrackedEnv: ["SHLVL"],
           input: [{ auto: true }, "!.react-router/**", { pattern: "!build/**", base: "workspace" }],
           output: [{ pattern: "build/client/**", base: "workspace" }],
         },
@@ -60,7 +59,6 @@ export default defineConfig(({ command }) => ({
       typegen: {
         command: "react-router typegen",
         cache: {
-          untrackedEnv: ["SHLVL"],
           input: [{ auto: true }, "!.react-router/**"],
           output: [".react-router/**"],
         },

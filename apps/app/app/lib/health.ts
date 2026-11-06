@@ -2,7 +2,7 @@ import {
   type HealthResponse,
   type HealthResponseParseError,
   parseHealthResponse,
-} from "@template-customware/shared";
+} from "@cw/shared";
 import { Result, TaggedError } from "better-result";
 
 export class HealthRequestError extends TaggedError("HealthRequestError")<{

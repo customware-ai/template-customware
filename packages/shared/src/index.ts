@@ -1,7 +1,7 @@
 import { Result } from "better-result";
 import { z } from "zod";
 
-export const APP_NAME = "Customware Template";
+export const APP_NAME = "App";
 
 export const HealthResponseSchema = z.object({
   name: z.literal(APP_NAME),
