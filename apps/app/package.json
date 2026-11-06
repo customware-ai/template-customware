@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "react-router dev",
-    "preview": "vp preview",
-    "type-check": "react-router typegen && tsrs --noEmit --project tsconfig.json"
+    "preview": "vp preview"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",
@@ -46,7 +45,6 @@
     "@vitejs/plugin-react": "catalog:",
     "oxc-transform-react": "catalog:",
     "tailwindcss": "catalog:",
-    "tsrs": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   }

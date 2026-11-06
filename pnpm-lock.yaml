@@ -376,9 +376,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.19.2
-      tsrs:
-        specifier: 'catalog:'
-        version: 0.22.0-ts7.1.0-beta
       tsx:
         specifier: 4.23.15
         version: 4.23.15
@@ -497,9 +494,6 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.5
-      tsrs:
-        specifier: 'catalog:'
-        version: 0.22.0-ts7.1.0-beta
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@1.5.0
         version: '@voidzero-dev/vite-plus-core@1.5.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(typescript@7.0.2)'
@@ -515,10 +509,6 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.6.7
-    devDependencies:
-      tsrs:
-        specifier: 'catalog:'
-        version: 0.22.0-ts7.1.0-beta
 
 packages:
 
