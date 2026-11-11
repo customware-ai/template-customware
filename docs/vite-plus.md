@@ -8,7 +8,7 @@ The repository pins Vite+ `1.5.0`; its matching `@voidzero-dev/vite-plus-core` p
 
 - `pnpm dev` starts the app and API development tasks in parallel.
 - `pnpm build` asks Vite+ for the deployable build task.
-- `pnpm lint` lints only application source under `apps/` and `packages/`; repository tests are verified by their own commands.
+- `pnpm run check` lints and type-checks only application source under `apps/` and `packages/`; repository tests are verified by their own commands.
 - `pnpm test` runs the existing tests.
 - `pnpm prepare` refreshes Vite+ hooks and agent integration.
 
@@ -16,7 +16,7 @@ The repository pins Vite+ `1.5.0`; its matching `@voidzero-dev/vite-plus-core` p
 
 ## Type Checking and Linting
 
-`pnpm lint` performs type-aware linting and type checking using TSRS, an experimental Rust port of the TypeScript compiler and language server. The root Vite configuration selects the installed `tsrs-lint` launcher as Oxlint’s type-aware backend via `OXLINT_TSGOLINT_PATH`; this applies to `vp lint` and `vp check` when they load the root configuration. TSRS can differ from the reference compiler. Some third-party dependencies still install the `typescript` package as a peer, and Vite+ bundles a Go lint backend; neither is selected for the project’s checking or linting. Oxlint rule names retain their `typescript/` prefix because that is the linter’s public rule namespace.
+`pnpm run check` performs type-aware linting and type checking using TSRS, an experimental Rust port of the TypeScript compiler and language server. The root Vite configuration selects the installed `tsrs-lint` launcher as Oxlint’s type-aware backend via `OXLINT_TSGOLINT_PATH`; this applies to `vp lint` and `vp check` when they load the root configuration. TSRS can differ from the reference compiler. Some third-party dependencies still install the `typescript` package as a peer, and Vite+ bundles a Go lint backend; neither is selected for the project’s checking or linting. Oxlint rule names retain their `typescript/` prefix because that is the linter’s public rule namespace.
 
 ## Build and Cache
 
@@ -43,7 +43,7 @@ For an isolated production API package, build first, then run `pnpm --filter @cw
 
 Task-specific `input` and `output` settings belong inside each task's `cache` object in Vite+ 1.5.
 
-Only the project-root `task-workflow/` directory is excluded from lint, the root TypeScript configuration, Vitest discovery, and coverage. Nested directories with that name are not excluded. Application TypeScript projects and Playwright already limit their inputs to their own directories, so they need no additional exclusions.
+The root `tests/` directory is excluded from linting and type checking, but remains included in formatting and test runs. The project-root `task-workflow/` directory is excluded from lint, the root TypeScript configuration, Vitest discovery, and coverage. Nested directories with that name are not excluded. Application TypeScript projects and Playwright already limit their inputs to their own directories.
 
 Formatting uses Vite+'s defaults. The root formatting block only excludes generated and temporary paths; it does not override style rules.
 

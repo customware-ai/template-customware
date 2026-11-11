@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 /** Sends a JSON log request to the shared route. */
-function post(body: string): Promise<Response> {
+async function post(body: string): Promise<Response> {
   return app.request("/logs", {
     method: "POST",
     headers: {
@@ -76,7 +76,7 @@ describe("frontend log limits", () => {
 
   it("rejects an oversized stream without a content-length header", async () => {
     const stream = new ReadableStream<Uint8Array>({
-      start(controller) {
+      start(controller): void {
         controller.enqueue(new Uint8Array(16 * 1024));
         controller.enqueue(new Uint8Array(1));
         controller.close();

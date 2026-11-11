@@ -33,7 +33,7 @@ If a task appears to require changing either protected document, complete the ap
 
 ## Installed Dependency References
 
-When using an installed package, verify unfamiliar or uncertain behavior from the installed version instead of guessing its API. Inspect the package under `node_modules/` for its shipped documentation, type declarations, and actual JavaScript source code. These files are the closest reference for how that exact version works in this application; use the package's official documentation when broader explanation is needed.
+When using an installed package, verify unfamiliar or uncertain APIs against the installed version instead of guessing. For example, for Speedy Router, inspect its `node_modules/` type declarations for API signatures, its Markdown files for documentation, and its JavaScript source when specific behavior needs clarification. Use the package's official documentation when broader explanation is needed.
 
 ## Project Structure & Module Organization
 
@@ -41,7 +41,7 @@ When using an installed package, verify unfamiliar or uncertain behavior from th
 - `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `apps/api/dist/start.js`.
 - `packages/shared/` – Source-level values and contracts genuinely consumed by both applications. Shared packages must not import app or API modules.
 - `tests/` – Existing unit, integration, and isolated Playwright infrastructure. The autonomous task workflow decides what verification a task requires.
-- `build/` and `apps/api/dist/` – Generated build artifacts. Never edit generated output directly; rebuild it.
+- `apps/app/dist/` and `apps/api/dist/` – Generated build artifacts. Never edit generated output directly; rebuild it.
 
 Add a package only for a real cross-workspace boundary. Keep browser-only and server-only code in their owning application.
 
@@ -54,7 +54,7 @@ For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
 - `pnpm dev` – Starts the app and API development tasks.
 - `pnpm build` – Builds `apps/app/dist` and `apps/api/dist`.
 - `pnpm start` – Runs the built Hono server.
-- `pnpm lint` – Lints application source under `apps/` and `packages/`.
+- `pnpm run check` – Runs type-aware linting and type checking on application source under `apps/` and `packages/`. Use this command for those checks; a separate type-check command is unnecessary.
 - `pnpm test` – Runs the existing unit and integration suite through Vite+.
 - `pnpm db:generate` – Generates Drizzle migrations from schema changes.
 - `pnpm db:migrate` – Applies SQLite migrations.

@@ -9,7 +9,7 @@
     "build": "vp run --filter @cw/api build",
     "start": "node --env-file=.env apps/api/dist/start.js",
     "start:e2e": "node tests/e2e/server-start.mjs",
-    "lint": "vp lint apps packages",
+    "check": "vp lint apps packages",
     "test": "vp test --run --config vitest.config.ts",
     "prepare:e2e": "tsx tests/e2e/prepare.ts",
     "e2e": "pnpm run build && playwright test",
