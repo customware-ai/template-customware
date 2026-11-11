@@ -1,29 +1,41 @@
 "use client";
 
-/**
- * TEMPLATE EXAMPLE ONLY. Use this file to learn the shipped UI patterns, then
- * remove it with the demo surface when the real product UI replaces it.
- */
-import { type ReactElement } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { barY, defineChart, group } from "@tanstack/charts";
+import { Chart } from "@tanstack/charts/react";
+import { scaleBand } from "@tanstack/charts/scales/band";
+import { scaleLinear } from "@tanstack/charts/scales/linear";
+import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
+import { tooltip } from "@tanstack/charts/tooltip";
+import type { ReactElement } from "react";
 
-import { chartConfig, chartData } from "~/components/demo/shared";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
+import { chartData } from "~/components/demo/shared";
 
+const series = chartData.flatMap(({ stage, velocity, quality }) => [
+  { stage, series: "Velocity", value: velocity },
+  { stage, series: "Confidence", value: quality },
+]);
+
+const chart = defineChart({
+  marks: [
+    barY(series, {
+      x: "stage",
+      y: "value",
+      color: "series",
+      layout: group({ padding: 0.1 }),
+      radius: 6,
+    }),
+  ],
+  scales: {
+    x: { scale: () => scaleBand<string>().padding(0.2) },
+    y: { scale: scaleLinear, nice: true, grid: true },
+  },
+  color: {
+    scale: () => scaleOrdinal<string, string>().range(["var(--primary)", "var(--chart-2)"]),
+  },
+  tooltip,
+});
+
+/** Render the example chart with keyboard and pointer interaction. */
 export function LayoutChartDemo(): ReactElement {
-  return (
-    <ChartContainer config={chartConfig} className="h-[320px] min-w-0 w-full">
-      <BarChart
-        accessibilityLayer
-        data={chartData}
-        margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
-      >
-        <CartesianGrid vertical={false} />
-        <XAxis dataKey="stage" tickLine={false} axisLine={false} tickMargin={8} />
-        <ChartTooltip content={<ChartTooltipContent />} />
-        <Bar dataKey="velocity" fill="var(--color-velocity)" radius={6} isAnimationActive={false} />
-        <Bar dataKey="quality" fill="var(--color-quality)" radius={6} isAnimationActive={false} />
-      </BarChart>
-    </ChartContainer>
-  );
+  return <Chart definition={chart} height={320} ariaLabel="Velocity and confidence by stage" />;
 }

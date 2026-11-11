@@ -2,7 +2,7 @@
  * Hono Server Entry Point
  *
  * This file creates the Hono HTTP server that:
- * 1. Serves static frontend assets from build/client in the working directory
+ * 1. Serves static frontend assets from apps/app/dist in the working directory
  * 2. Handles tRPC API requests at /trpc/*
  * 3. Captures frontend and backend error events
  * 4. Falls back to index.html for client-side routing
@@ -10,7 +10,7 @@
  * Architecture:
  * - Hono handles HTTP routing and middleware
  * - tRPC provides type-safe API endpoints
- * - React Router handles client-side routing
+ * - Speedy Router handles client-side routing
  */
 
 import "zod/compile";
@@ -19,7 +19,8 @@ import * as path from "node:path";
 
 import { serveStatic } from "@hono/node-server/serve-static";
 import { trpcServer } from "@hono/trpc-server";
-import { APP_NAME, type HealthResponse } from "@cw/shared";
+import type { HealthResponse } from "@cw/shared";
+import { APP_NAME } from "@cw/shared/app-name";
 import { Result } from "better-result";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -28,7 +29,7 @@ import { frontendLogs } from "./routes/frontend-logs.js";
 import { installProcessErrorHandlers, logServerPayload } from "./services/logging.js";
 import { appRouter } from "./trpc/router.js";
 
-const CLIENT_DIR = path.resolve(process.cwd(), "build", "client");
+const CLIENT_DIR = path.resolve(process.cwd(), "apps", "app", "dist");
 const SHORT_STATIC_CACHE = "max-age=120";
 const IMMUTABLE_ASSET_CACHE = "public, max-age=31536000, immutable";
 
@@ -181,7 +182,7 @@ app.notFound((c) => {
 /**
  * Catch-all route for client-side routing
  * Returns index.html for any route not matched above
- * This allows React Router to handle client-side navigation
+ * This allows Speedy Router to handle client-side navigation
  */
 app.get("*", (c) => {
   if (!acceptsHtml(c.req.header("Accept"))) {

@@ -4,16 +4,22 @@ This template is used to build apps with Customware (CW). Customware is the buil
 
 ## Implemented Foundation
 
-- React 19 SPA with React Router 8, a wired tRPC/TanStack Query client, shadcn Base UI components, and Tailwind CSS v4
+- React 19 SPA with Speedy Router, a wired tRPC/TanStack Query client, shadcn Base UI components, TanStack Charts, and Tailwind CSS v4
 - Hono API with a typed Notes and Todos tRPC example, relational persistence, and bounded cursor pagination
 - SQLite persistence with Drizzle migrations
 - pnpm workspaces for `apps/*` and `packages/*`
-- source-level shared contracts under `packages/shared`
+- source-level shared contracts under `packages/shared`; the app name has its own `@cw/shared/app-name` export so importing it does not eagerly load health validation
 - BetterResult contracts and mapped failure handling across browser, shared, and API code
 - Zod 4.6 contracts with lazy server compilation; browser schemas keep the standard parser to avoid an 8 KB gzipped compiler payload and `new Function` CSP requirement
 - Vite+ formatting, linting, task orchestration, and hooks, with TSRS (the Rust port of TypeScript) for type checking and type-aware linting
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
-- one deployable application with the client in `build/client` and server in `apps/api/dist`
+- one deployable application with the client in `apps/app/dist` and server in `apps/api/dist`
+
+## Routing
+
+The SPA uses Speedy Router, a separate router with a TanStack Router-style API. `apps/app/app/routes.ts` defines and registers the typed route tree. To check an API, inspect the installed `speedy-router` type declarations first; for more detail, read its Markdown documentation and JavaScript source in `node_modules`, or use the existing application code as an example.
+
+Speedy Router 0.1.25 declares React 19.2 peers; `pnpm-workspace.yaml` permits React and React DOM 19.3.1 for this package. Recheck compatibility when upgrading either dependency.
 
 ## Repository Map
 
@@ -29,7 +35,6 @@ This template is used to build apps with Customware (CW). Customware is the buil
 
 - [Code Rules](./engineering/code-rules.md)
 - [Application Design](./engineering/application-design.md)
-- [React Router](./engineering/react-router.md)
 - [Observability](./engineering/observability.md)
 - [Vite+](./vite-plus.md)
 

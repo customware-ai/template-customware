@@ -26,6 +26,8 @@ peerDependencyRules:
   allowAny:
     - vite
   allowedVersions:
+    "speedy-router>react": 19.3.1
+    "speedy-router>react-dom": 19.3.1
     oxc-transform-react: 0.156.0
     vite: "*"
 

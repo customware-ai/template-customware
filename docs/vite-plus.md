@@ -8,7 +8,7 @@ The repository pins Vite+ `1.5.0`; its matching `@voidzero-dev/vite-plus-core` p
 
 - `pnpm dev` starts the app and API development tasks in parallel.
 - `pnpm build` asks Vite+ for the deployable build task.
-- `pnpm lint` generates React Router types, then lints only application source under `apps/` and `packages/`; repository tests are verified by their own commands.
+- `pnpm lint` lints only application source under `apps/` and `packages/`; repository tests are verified by their own commands.
 - `pnpm test` runs the existing tests.
 - `pnpm prepare` refreshes Vite+ hooks and agent integration.
 
@@ -24,11 +24,10 @@ Vite+ caches configured tasks by default. It fingerprints inputs and restores ge
 
 The build tasks have non-overlapping outputs:
 
-- the app build owns `build/client/**`
+- the app build owns `apps/app/dist/**`
 - the API build owns `apps/api/dist/**`
-- route type generation owns `apps/app/.react-router/**`
 
-The API build depends on the app build in the Vite+ task graph. Therefore the single root build command runs or restores the client first, then runs or restores the server. React Router also creates `build/server/index.js` as a prerendering intermediate for the SPA; it is not the production API server.
+The API build depends on the app build in the Vite+ task graph. Therefore the single root build command runs or restores the client first, then runs or restores the server.
 
 Do not add `--no-cache`, make both tasks own the same outputs, run these production builds concurrently, or hide build work inside setup scripts. Define new generated work as an owning workspace task with non-overlapping outputs.
 
@@ -38,9 +37,9 @@ The root `vite.config.ts` owns formatting, linting, staged checks, and the repos
 
 The pnpm catalog centralizes versions shared by workspace manifests and the root TSRS version. Other dependencies used by only one workspace pin their versions in that workspace's `package.json`; catalog additions are explicit rather than automatic. Each importing workspace declares its own dependencies. The root declares the API workspace as a runtime dependency because it runs the built server.
 
-The server entry point is `apps/api/dist/start.js`. Its third-party dependencies remain external, so Node resolves them from the API workspace's installed dependencies, including SQLite's native module. The shared TypeScript workspace source is compiled into the server. Runtime deployments must include the server output and the API workspace's production dependencies alongside `build/client`; installing the root workspace and its dependencies includes the API workspace.
+The server entry point is `apps/api/dist/start.js`. Its third-party dependencies remain external, so Node resolves them from the API workspace's installed dependencies, including SQLite's native module. The shared TypeScript workspace source is compiled into the server. Runtime deployments must include the server output and the API workspace's production dependencies alongside `apps/app/dist`; installing the root workspace and its dependencies includes the API workspace.
 
-For an isolated production API package, build first, then run `pnpm --filter @cw/api --prod deploy <target>`. The deployed package contains `dist/start.js`, the API source and its production dependencies. It does not include the client or the root migration command: supply `build/client` and a database migrated by the workspace's migration process before starting it from the target directory.
+For an isolated production API package, build first, then run `pnpm --filter @cw/api --prod deploy <target>`. The deployed package contains `dist/start.js`, the API source and its production dependencies. It does not include the client or the root migration command: supply `apps/app/dist` and a database migrated by the workspace's migration process before starting it from the target directory.
 
 Task-specific `input` and `output` settings belong inside each task's `cache` object in Vite+ 1.5.
 
@@ -60,8 +59,4 @@ Use the installed-version documentation before relying on memory:
 
 ## Front-end Development
 
-`pnpm --filter @cw/app dev` runs only the browser app, with React Router owning development React transforms and Fast Refresh. The standalone React plugin and React Compiler run only for production builds; enabling both refresh implementations in development redeclares `RefreshRuntime` and prevents the app from loading. Production builds retain React Compiler optimization.
-
-`ssr.noExternal` is build-only. Development leaves package dependencies external so the React Router dev server can load CommonJS packages such as React through Node rather than executing them as unconverted ES modules. Production prerender previews bind explicitly to `127.0.0.1` to keep their listener and requests on the same address family.
-
-The full `pnpm dev` command additionally starts the API on 8080. The front-end-only command needs local mock data when no API is running. UI-only sandbox previews set `import.meta.env.VITE_UI_ONLY` to `"true"` in their runtime Vite configuration; the teaching catalog then omits its real API health probe and Todos example. Normal root development still runs these examples against the API. The runtime also mounts the shared frontend log listener before React Router, without launching the product API. A sandbox may select its own front-end host and port with `--host 0.0.0.0 --port 8080 --strictPort`; its public proxy must also configure the allowed hostname and WebSocket HMR origin.
+`pnpm --filter @cw/app dev` starts the Vite SPA with React Fast Refresh. `pnpm dev` also starts the API on port 8080; Vite proxies `/health`, `/logs`, and `/trpc` to it. The production build writes the client to `apps/app/dist`, where Hono serves it with the SPA fallback.

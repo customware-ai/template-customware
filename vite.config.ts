@@ -8,11 +8,10 @@ process.env.OXLINT_TSGOLINT_PATH = fileURLToPath(
 );
 
 const IGNORE_PATTERNS = [
-  ".react-router/**",
-  "apps/app/.react-router/**",
   "build/**",
   "dist/**",
   "apps/api/dist/**",
+  "apps/app/dist/**",
   "**/node_modules/**",
   "playwright-report/**",
   "test-results/**",

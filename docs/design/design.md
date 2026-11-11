@@ -45,7 +45,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 
 - Motion must provide feedback, guide attention, or preserve spatial continuity; never add it only as decoration.
 - Keep ordinary hover and press feedback brief.
-- Use React Router view transitions only when they clarify a navigation change.
+- Use view transitions only when they clarify a navigation change.
 - Respect `prefers-reduced-motion`; the experience must remain complete without animation.
 
 ## React Components

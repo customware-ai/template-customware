@@ -24,8 +24,8 @@ import {
   PaginationPrevious,
 } from "~/components/ui/pagination";
 
-// Recharts is a large charting package. Keep it behind this import() boundary
-// so pages that only need carousel/pagination UI do not load charting code.
+// Charting code is loaded only when the chart is displayed. Keep it behind this import() boundary
+// Pages that only need carousel/pagination UI do not load it.
 const LayoutChartDemo = lazy(() =>
   import("~/components/demo/LayoutChartDemo").then((module) => ({
     default: module.LayoutChartDemo,

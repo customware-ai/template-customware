@@ -14,7 +14,7 @@ Quick pointers:
 
 - Repository-wide implementation rules: `docs/engineering/code-rules.md`.
 - Production application, API, query, and data design: `docs/engineering/application-design.md`.
-- React Router structure and APIs: `docs/engineering/react-router.md`.
+- Speedy Router structure and APIs: `docs/main.md#routing`.
 - Vite+ commands, hooks, and monorepo behavior: `docs/vite-plus.md`.
 - UI and interaction rules: `docs/design/design.md`.
 - Current browser routes and API endpoints: `docs/platform/routes.md`.
@@ -37,7 +37,7 @@ When using an installed package, verify unfamiliar or uncertain behavior from th
 
 ## Project Structure & Module Organization
 
-- `apps/app/` – React 19 SPA using React Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.
+- `apps/app/` – React 19 SPA using Speedy Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `apps/app/dist`.
 - `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `apps/api/dist/start.js`.
 - `packages/shared/` – Source-level values and contracts genuinely consumed by both applications. Shared packages must not import app or API modules.
 - `tests/` – Existing unit, integration, and isolated Playwright infrastructure. The autonomous task workflow decides what verification a task requires.
@@ -52,9 +52,9 @@ The UI catalog and Notes and Todos API are temporary teaching examples. Follow t
 For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
 
 - `pnpm dev` – Starts the app and API development tasks.
-- `pnpm build` – Builds `build/client` and `apps/api/dist`.
+- `pnpm build` – Builds `apps/app/dist` and `apps/api/dist`.
 - `pnpm start` – Runs the built Hono server.
-- `pnpm lint` – Generates React Router route types, then lints application source under `apps/` and `packages/`.
+- `pnpm lint` – Lints application source under `apps/` and `packages/`.
 - `pnpm test` – Runs the existing unit and integration suite through Vite+.
 - `pnpm db:generate` – Generates Drizzle migrations from schema changes.
 - `pnpm db:migrate` – Applies SQLite migrations.

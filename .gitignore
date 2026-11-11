@@ -13,12 +13,10 @@ logs/
 .dbs/
 /database.db
 
-
-# React Router
-**/.react-router/
 /build/
 /dist/
 /apps/api/dist/
+/apps/app/dist/
 /.vitest/
 /playwright-report/
 /test-results/

@@ -11,7 +11,7 @@ export default defineConfig({
         command: "vp build",
         dependsOn: ["@cw/app#build"],
         cache: {
-          input: [{ auto: true }, "!dist/**", { pattern: "!build/**", base: "workspace" }],
+          input: [{ auto: true }, "!dist/**", { pattern: "!apps/app/dist/**", base: "workspace" }],
           output: ["dist/**"],
         },
       },

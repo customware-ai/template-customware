@@ -151,10 +151,10 @@ For the installed API, inspect `node_modules/better-result/README.md`, `dist/ind
 - Never use `oxlint-disable`, weaken lint rules, expand ignore patterns, or change check scripts to hide a diagnostic. Fix its cause.
 - Let Vite+ and Oxfmt own formatting; do not add a competing formatter configuration.
 - Keep dependencies declared by the workspace that imports them. Root dependencies are for root-owned runtime or tooling only.
-- Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as Recharts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
+- Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as TanStack Charts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
 
 ```tsx
-// Recharts is large and this todo activity chart is not required for first paint.
+// This chart is large and is not required for first paint.
 const TodoActivityChart = lazy(() => import("./todo-activity-chart"));
 
 function TodoAnalyticsPanel(): ReactElement {
@@ -168,9 +168,9 @@ function TodoAnalyticsPanel(): ReactElement {
 
 ## Frontend
 
-- Read [React Router](./react-router.md) before routing, navigation, query, or mutation work.
+- Read [Speedy Router](../main.md#routing) before routing, navigation, query, or mutation work.
 - Read the [design guide](../design/design.md) before UI work.
-- Use React Router for route identity and navigation, TanStack Query through tRPC for server state, shadcn components on Base UI for accessible behavior, and Tailwind CSS v4 for styling.
+- Use Speedy Router for route identity and navigation, TanStack Query through tRPC for server state, shadcn components on Base UI for accessible behavior, and Tailwind CSS v4 for styling.
 - Use functional React components with typed props and explicit return types.
 - Prefer composition over prop drilling and configuration-heavy components.
 - Do not introduce another router, server-state cache, component system, or styling system.

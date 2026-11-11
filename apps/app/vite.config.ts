@@ -2,7 +2,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { brotliCompressSync, constants } from "node:zlib";
 
-import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import type { Plugin } from "vite";
@@ -50,17 +49,10 @@ export default defineConfig(({ command }) => ({
   run: {
     tasks: {
       build: {
-        command: "react-router build",
+        command: "vp build",
         cache: {
-          input: [{ auto: true }, "!.react-router/**", { pattern: "!build/**", base: "workspace" }],
-          output: [{ pattern: "build/client/**", base: "workspace" }],
-        },
-      },
-      typegen: {
-        command: "react-router typegen",
-        cache: {
-          input: [{ auto: true }, "!.react-router/**"],
-          output: [".react-router/**"],
+          input: [{ auto: true }, "!dist/**"],
+          output: ["dist/**"],
         },
       },
     },
@@ -75,16 +67,11 @@ export default defineConfig(({ command }) => ({
   build: {
     chunkSizeWarningLimit: 200,
     emptyOutDir: true,
+    outDir: "dist",
   },
-  plugins: [
-    tailwindcss(),
-    reactRouter(),
-    ...(command === "build" ? react({ compiler: true }) : []),
-    brotliAssets(),
-  ],
+  plugins: [tailwindcss(), react({ compiler: command === "build" }), brotliAssets()],
   resolve: {
     tsconfigPaths: true,
   },
-  ssr: command === "build" ? { noExternal: true } : undefined,
   preview: { host: "127.0.0.1" },
 }));

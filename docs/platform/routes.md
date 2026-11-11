@@ -2,11 +2,11 @@
 
 ## Browser Routes
 
-`apps/app/app/routes.ts` is the authoritative React Router route tree. Route module paths are relative to `apps/app/app`.
+`apps/app/app/routes.ts` is the authoritative Speedy Router route tree.
 
-The current template defines a shared layout with one index route. Follow the complete [React Router guide](../engineering/react-router.md) when adding layouts, routes, navigation, queries, or mutations.
+The current template defines a shared layout with one index route. Follow the [routing guidance](../main.md#routing) when adding layouts, routes, navigation, queries, or mutations.
 
-The application runs in SPA mode. Hono serves `build/client/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
+The application runs in SPA mode. Hono serves `apps/app/dist/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
 
 ## API Endpoints
 

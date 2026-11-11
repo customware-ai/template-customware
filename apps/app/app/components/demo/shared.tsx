@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
-import { type ChartConfig } from "~/components/ui/chart";
 import { cn } from "~/lib/utils";
 
 export type DealRow = {
@@ -30,11 +29,6 @@ export const chartData = [
   { stage: "Price", velocity: 51, quality: 42 },
   { stage: "Approve", velocity: 67, quality: 58 },
 ];
-
-export const chartConfig = {
-  velocity: { label: "Velocity", color: "hsl(var(--primary))" },
-  quality: { label: "Confidence", color: "hsl(var(--chart-2))" },
-} satisfies ChartConfig;
 
 export const tableData: DealRow[] = [
   { account: "Northwind Health", owner: "Ava", stage: "Proposal", value: "$84k" },

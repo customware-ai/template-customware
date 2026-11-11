@@ -10,19 +10,11 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/unit/setup.ts"],
     include: ["tests/unit/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules", "build", ".react-router", "task-workflow/**"],
+    exclude: ["node_modules", "build", "task-workflow/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      exclude: [
-        "node_modules",
-        "tests",
-        "build",
-        ".react-router",
-        "*.config.ts",
-        "*.config.js",
-        "task-workflow/**",
-      ],
+      exclude: ["node_modules", "tests", "build", "*.config.ts", "*.config.js", "task-workflow/**"],
     },
   },
   resolve: {

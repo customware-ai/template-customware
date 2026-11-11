@@ -5,7 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./app-name": "./src/app-name.ts"
   },
   "dependencies": {
     "better-result": "catalog:",
