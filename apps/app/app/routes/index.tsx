@@ -2,8 +2,7 @@ import { lazy, Suspense, type ReactElement } from "react";
 
 import { InitialLoadingState } from "~/components/initial-loading-state";
 
-// Potentially large route/demo surfaces should be lazy imported. This keeps the
-// initial route chunk small and makes Vite's 200 kB chunk warning meaningful.
+// Potentially large route/demo surfaces should be lazy imported to keep the initial route chunk small.
 const Demo = lazy(() => import("~/components/Demo"));
 
 /**

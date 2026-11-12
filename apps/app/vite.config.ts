@@ -65,9 +65,21 @@ export default defineConfig(({ command }) => ({
     },
   },
   build: {
-    chunkSizeWarningLimit: 200,
+    // The isolated React chunk is ~220 kB; any app chunk past this limit should be lazy loaded.
+    chunkSizeWarningLimit: 250,
     emptyOutDir: true,
     outDir: "../../build/client",
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // Isolate framework code so app edits do not rehash it and returning visitors keep it cached.
+          groups: [
+            { name: "react", test: /node_modules[\\/](?:react|react-dom)[\\/]/ },
+            { name: "router", test: /node_modules[\\/]speedy-router[^\\/]*[\\/]/ },
+          ],
+        },
+      },
+    },
   },
   plugins: [tailwindcss(), react({ compiler: command === "build" }), brotliAssets()],
   resolve: {
