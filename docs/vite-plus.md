@@ -24,8 +24,8 @@ Vite+ caches configured tasks by default. It fingerprints inputs and restores ge
 
 The build tasks have non-overlapping outputs:
 
-- the app build owns `apps/app/dist/**`
-- the API build owns `apps/api/dist/**`
+- the app build owns `build/client/**`
+- the API build owns `build/server/**`
 
 The API build depends on the app build in the Vite+ task graph. Therefore the single root build command runs or restores the client first, then runs or restores the server.
 
@@ -35,11 +35,9 @@ Do not add `--no-cache`, make both tasks own the same outputs, run these product
 
 The root `vite.config.ts` owns formatting, linting, staged checks, and the repository cache policy. Workspace Vite configs own their tasks and builds. Do not add competing formatter, linter, or hook configuration.
 
-The pnpm catalog centralizes versions shared by workspace manifests and the root TSRS version. Other dependencies used by only one workspace pin their versions in that workspace's `package.json`; catalog additions are explicit rather than automatic. Each importing workspace declares its own dependencies. The root declares the API workspace as a runtime dependency because it runs the built server.
+Package placement follows the dependency rule in [code rules](engineering/code-rules.md#code-quality-and-modules).
 
-The server entry point is `apps/api/dist/start.js`. Its third-party dependencies remain external, so Node resolves them from the API workspace's installed dependencies, including SQLite's native module. The shared TypeScript workspace source is compiled into the server. Runtime deployments must include the server output and the API workspace's production dependencies alongside `apps/app/dist`; installing the root workspace and its dependencies includes the API workspace.
-
-For an isolated production API package, build first, then run `pnpm --filter @cw/api --prod deploy <target>`. The deployed package contains `dist/start.js`, the API source and its production dependencies. It does not include the client or the root migration command: supply `apps/app/dist` and a database migrated by the workspace's migration process before starting it from the target directory.
+The server entry point is `build/server/start.js`, started from the repository root by `pnpm start`. Only the shared workspace source is bundled; every other package stays external and Node loads it from the root `node_modules`. The root therefore owns the server's runtime packages, and the API workspace declares only build-time links. Runtime deployments include `build/client`, `build/server`, and the installed production dependencies; install with the frozen lockfile on the target platform so SQLite's native addon matches the runtime, and migrate the database with the root migration command.
 
 Task-specific `input` and `output` settings belong inside each task's `cache` object in Vite+ 1.5.
 
@@ -59,4 +57,4 @@ Use the installed-version documentation before relying on memory:
 
 ## Front-end Development
 
-`pnpm --filter @cw/app dev` starts the Vite SPA with React Fast Refresh. `pnpm dev` also starts the API on port 8080; Vite proxies `/health`, `/logs`, and `/trpc` to it. The production build writes the client to `apps/app/dist`, where Hono serves it with the SPA fallback.
+`pnpm --filter @cw/app dev` starts the Vite SPA with React Fast Refresh. `pnpm dev` also starts the API on port 8080; Vite proxies `/health`, `/logs`, and `/trpc` to it. The production build writes the client to `build/client`, where Hono serves it with the SPA fallback.

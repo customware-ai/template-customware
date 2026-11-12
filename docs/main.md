@@ -13,7 +13,7 @@ This template is used to build apps with Customware (CW). Customware is the buil
 - Zod 4.6 contracts with lazy server compilation; browser schemas keep the standard parser to avoid an 8 KB gzipped compiler payload and `new Function` CSP requirement
 - Vite+ formatting, linting, task orchestration, and hooks, with TSRS (the Rust port of TypeScript) for type checking and type-aware linting
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
-- one deployable application with the client in `apps/app/dist` and server in `apps/api/dist`
+- one deployable application with the client in `build/client` and server in `build/server`
 
 ## Routing
 

@@ -37,11 +37,11 @@ When using an installed package, verify unfamiliar or uncertain APIs against the
 
 ## Project Structure & Module Organization
 
-- `apps/app/` – React 19 SPA using Speedy Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `apps/app/dist`.
-- `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `apps/api/dist/start.js`.
+- `apps/app/` – React 19 SPA using Speedy Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.
+- `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `build/server/start.js`.
 - `packages/shared/` – Source-level values and contracts genuinely consumed by both applications. Shared packages must not import app or API modules.
 - `tests/` – Existing unit, integration, and isolated Playwright infrastructure. The autonomous task workflow decides what verification a task requires.
-- `apps/app/dist/` and `apps/api/dist/` – Generated build artifacts. Never edit generated output directly; rebuild it.
+- `build/client/` and `build/server/` – Generated build artifacts. Never edit generated output directly; rebuild it.
 
 Add a package only for a real cross-workspace boundary. Keep browser-only and server-only code in their owning application.
 
@@ -52,7 +52,7 @@ The UI catalog and Notes and Todos API are temporary teaching examples. Follow t
 For Vite+ behavior and pitfalls, read `docs/vite-plus.md`.
 
 - `pnpm dev` – Starts the app and API development tasks.
-- `pnpm build` – Builds `apps/app/dist` and `apps/api/dist`.
+- `pnpm build` – Builds `build/client` and `build/server`.
 - `pnpm start` – Runs the built Hono server.
 - `pnpm run check` – Runs type-aware linting and type checking on application source under `apps/` and `packages/`. Use this command for those checks; a separate type-check command is unnecessary.
 - `pnpm test` – Runs the existing unit and integration suite through Vite+.

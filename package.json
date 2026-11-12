@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vp run --parallel --filter @cw/api --filter @cw/app dev",
     "build": "vp run --filter @cw/api build",
-    "start": "node --env-file=.env apps/api/dist/start.js",
+    "start": "node --env-file=.env build/server/start.js",
     "start:e2e": "node tests/e2e/server-start.mjs",
     "check": "vp lint apps packages",
     "test": "vp test --run --config vitest.config.ts",
@@ -18,8 +18,14 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@cw/api": "workspace:*",
+    "@hono/node-server": "2.1.6",
+    "@hono/trpc-server": "0.4.2",
+    "@trpc/server": "catalog:",
     "better-result": "catalog:",
+    "better-sqlite3": "13.0.3",
+    "dotenv": "18.0.9",
+    "drizzle-orm": "catalog:",
+    "hono": "4.13.16",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -32,12 +38,13 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
-    "drizzle-kit": "0.31.11",
+    "drizzle-kit": "catalog:",
     "jsdom": "31.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tsrs": "catalog:",
+    "tsrs": "0.22.0-ts7.1.0-beta",
     "tsx": "catalog:",
+    "vite": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {

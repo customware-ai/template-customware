@@ -2,7 +2,7 @@
  * Hono Server Entry Point
  *
  * This file creates the Hono HTTP server that:
- * 1. Serves static frontend assets from apps/app/dist in the working directory
+ * 1. Serves static frontend assets from build/client in the working directory
  * 2. Handles tRPC API requests at /trpc/*
  * 3. Captures frontend and backend error events
  * 4. Falls back to index.html for client-side routing
@@ -29,7 +29,7 @@ import { frontendLogs } from "./routes/frontend-logs.js";
 import { installProcessErrorHandlers, logServerPayload } from "./services/logging.js";
 import { appRouter } from "./trpc/router.js";
 
-const CLIENT_DIR = path.resolve(process.cwd(), "apps", "app", "dist");
+const CLIENT_DIR = path.resolve(process.cwd(), "build", "client");
 const SHORT_STATIC_CACHE = "max-age=120";
 const IMMUTABLE_ASSET_CACHE = "public, max-age=31536000, immutable";
 

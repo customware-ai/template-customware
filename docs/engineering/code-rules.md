@@ -150,7 +150,11 @@ For the installed API, inspect `node_modules/better-result/README.md`, `dist/ind
 - Do not add barrel exports or aggregate re-export modules, especially `export *`; import from the defining module so tree-shaking and code splitting retain real boundaries.
 - Never use `oxlint-disable`, weaken lint rules, expand ignore patterns, or change check scripts to hide a diagnostic. Fix its cause.
 - Let Vite+ and Oxfmt own formatting; do not add a competing formatter configuration.
-- Keep dependencies declared by the workspace that imports them. Root dependencies are for root-owned runtime or tooling only.
+- Declare each package where it runs, pinned to an exact version:
+  - Server packages imported by `apps/api`: root `dependencies`, added with `pnpm add -w <package>`. The root runs the built server, and the server build fails if a package it imports is not installed there.
+  - Browser packages: `apps/app/package.json`, added with `pnpm --filter @cw/app add <package>`.
+  - Packages used by more than one workspace, and families whose versions must match (tRPC, Drizzle, React, Vite+): a `catalog:` entry in `pnpm-workspace.yaml`, referenced as `catalog:` by every workspace that uses them.
+  - Tests, configs, and script tools: root `devDependencies`.
 - Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as TanStack Charts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
 
 ```tsx

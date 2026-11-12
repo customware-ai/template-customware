@@ -6,7 +6,7 @@
 
 The current template defines a shared layout with one index route. Follow the [routing guidance](../main.md#routing) when adding layouts, routes, navigation, queries, or mutations.
 
-The application runs in SPA mode. Hono serves `apps/app/dist/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
+The application runs in SPA mode. Hono serves `build/client/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
 
 ## API Endpoints
 

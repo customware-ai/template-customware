@@ -51,8 +51,8 @@ export default defineConfig(({ command }) => ({
       build: {
         command: "vp build",
         cache: {
-          input: [{ auto: true }, "!dist/**"],
-          output: ["dist/**"],
+          input: [{ auto: true }, { pattern: "!build/**", base: "workspace" }],
+          output: [{ pattern: "build/client/**", base: "workspace" }],
         },
       },
     },
@@ -67,7 +67,7 @@ export default defineConfig(({ command }) => ({
   build: {
     chunkSizeWarningLimit: 200,
     emptyOutDir: true,
-    outDir: "dist",
+    outDir: "../../build/client",
   },
   plugins: [tailwindcss(), react({ compiler: command === "build" }), brotliAssets()],
   resolve: {

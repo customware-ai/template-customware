@@ -14,9 +14,6 @@ logs/
 /database.db
 
 /build/
-/dist/
-/apps/api/dist/
-/apps/app/dist/
 /.vitest/
 /playwright-report/
 /test-results/
