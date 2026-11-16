@@ -491,6 +491,7 @@ const update = trpc.tasks.update.useMutation({
 
 - Render a pending create, toggle, edit, or delete from its mutation's `variables` instead of writing it into list caches — because a background refetch replaces cached pages and erases a temporary row, while untouched caches need no rollback.
 - Give each row its own mutation — because a shared mutation exposes only the latest call's variables.
+- When the prediction renders outside the submitting component, own the mutation in their nearest shared parent and pass the mutation down, never a copy of its variables in separate state — because a copy is cleared on its own schedule, so the item blinks out before the refreshed list arrives.
 - Return the invalidation promise from `onSettled` — because the mutation then stays pending until the refetch settles, so a successful prediction never flickers away.
 - Show the list's refresh-failed notice with Retry when that refetch fails — because the prediction ends with the mutation and the cached list is then stale.
 
@@ -502,7 +503,7 @@ onMutate: () => utils.tasks.list.setInfiniteData(input, (data) => withTemporaryR
 ```tsx
 // Good: each prediction comes from its own mutation until the refreshed list arrives.
 const create = trpc.tasks.create.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
-// In the list:
+// In the list, given `create` by the parent it shares with the form:
 {
   create.isPending && <li aria-busy="true">{create.variables.title} · Saving…</li>;
 }
