@@ -3,8 +3,6 @@ import path from "node:path";
 
 import { Result } from "better-result";
 
-import { seedE2EData } from "./seed.js";
-
 /**
  * Fixed sqlite database path shared by Playwright setup, helpers, and the
  * backend process under test.
@@ -47,6 +45,5 @@ export async function prepareE2EDatabase(): Promise<void> {
 
   const { runMigrations } = await import("../../apps/api/src/db/migrate.js");
   Result.unwrap(runMigrations(), "Failed to migrate the E2E database");
-  await seedE2EData();
   Result.unwrap(resetDatabaseConnection(), "Failed to close the E2E database connection");
 }

@@ -23,7 +23,7 @@ React route or component
 - `apps/app/app/routes.ts` owns the browser route tree.
 - Browser routes, layouts, and components own presentation and interaction, not authorization or persistence.
 - `apps/api/src/trpc/` owns typed procedures and transport mapping.
-- `apps/api/src/contracts/` owns server input and output schemas.
+- `apps/api/src/contracts/` owns server-only input and output schemas; runtime contracts used by both applications live in `packages/shared/`.
 - `apps/api/src/services/` owns business rules, authorization decisions, and orchestration.
 - `apps/api/src/db/queries/` owns reads and writes; `schemas.ts` owns tables; `index.ts` owns database initialization.
 - `packages/shared/` contains only pure values and contracts genuinely consumed by both applications.
@@ -50,11 +50,11 @@ Keep transport, business rules, persistence, and rendering separate. Do not bypa
 - Do not add speculative indexes. Every index increases write work and storage.
 - Select only the fields the operation needs and avoid loading unbounded related collections.
 - Apply filters that materially reduce a collection—such as lifecycle state, authorization scope, search, and ownership—in the database query. Never fetch a full or unbounded collection and then filter it on the server or in the browser.
-- Filtering a small, already bounded result in the browser is acceptable for transient presentation when it does not affect authorization, pagination, counts, or result correctness.
+- Filtering an already loaded page in the browser is allowed only for transient presentation that does not affect authorization, pagination, counts, or result correctness.
 - Return display-ready rows from the query boundary. Never hydrate records or perform authorization, lock, or relationship lookups once per returned row; join or batch that work instead.
-- Inspect generated SQL and query plans when query cost or index use is uncertain.
+- Inspect generated SQL and query plans for changed collection queries and their indexes.
 
-Prefer one joined or batched query over per-row work:
+Use one joined or batched query instead of per-row work. This fragment is one cursor page; apply the cursor predicate and return continuation as shown below:
 
 ```ts
 // Good: the database returns the display shape in one bounded operation.
@@ -74,8 +74,7 @@ const rowsResult = Result.tryPromise({
 
 ## Pagination and Bounded Reads
 
-- Every collection that can grow without a small hard product limit must be paginated or otherwise bounded.
-- Prefer cursor pagination for mutable or growing collections. Offset pagination is acceptable only for small, stable data or when exact page-number navigation is a real requirement.
+- Every list read from the database uses cursor pagination with continuation so every matching record is reachable. A query limit alone is not pagination; a larger page size does not replace continuation.
 - Use a deterministic total order. Add a unique tie-breaker such as the primary key when the visible sort field is not unique.
 - A cursor must contain every value needed to continue that exact ordering; never use an ambiguous timestamp-only cursor.
 - Keep filters, authorization scope, and ordering consistent across pages. Changing them starts a new pagination sequence.
@@ -136,7 +135,7 @@ Network calls and other retryable IO stay outside the transaction.
 
 ## API and State Contracts
 
-- Validate untrusted input once with the owning Zod schema and pass the resulting typed value inward.
+- Follow [Code Rules](./code-rules.md#typescript-and-contracts) for validation at each trust boundary.
 - Expose explicit input and output contracts rather than database rows or implementation-specific exceptions.
 - Keep authorization at the service boundary and scope every query to the authorized owner or tenant.
 - Return structured expected failures that clients can handle without parsing message text.
@@ -147,43 +146,43 @@ Network calls and other retryable IO stay outside the transaction.
 ## Browser Server State
 
 - TanStack Query through `@trpc/react-query` is the single owner of browser server state. Do not mirror query results into component state or add another fetch cache.
-- Use the typed tRPC hooks that fit the operation: `useQuery` for bounded reads, `useInfiniteQuery` for cursor pages, `useMutation` for writes, `useUtils` for cache operations, and the prefetch hooks for likely next navigation or pages.
+- Use the typed tRPC hooks that fit the operation: `useQuery` for individual records and other non-list reads, `useInfiniteQuery` for cursor pages, `useMutation` for writes, `useUtils` for cache operations, and the prefetch hooks for likely next navigation or pages.
 - Include client-selected filters, ordering, and pagination in the tRPC input so TanStack Query gives each result set the correct cache identity. Apply trusted authorization scope at the service and database boundaries, not from client input.
 - Set `staleTime`, `gcTime`, refetch triggers, polling, and bounded read retries from the data's actual freshness and failure needs. Do not apply one policy to unrelated queries or automatically retry unsafe mutations.
 - Preserve usable cached data during background refetches and page changes, using placeholder data when continuity is correct. Show an initial loader only when no usable data exists.
-- For predictable mutations, cancel affected queries, snapshot and optimistically update their cached data, roll back on failure, then reconcile with the authoritative response and invalidate only affected query keys.
+- Reconcile authoritative mutation responses when sufficient and invalidate only affected query keys and input variants. Never call unscoped `invalidateQueries()` or invalidate the entire cache. Include affected lists, ordering, membership, and counts. For predictable optimistic mutations, cancel affected queries, snapshot and update their cached data, roll back on failure, and reconcile on success.
 - Use tRPC's integration for cancellation rather than adding parallel request plumbing. Abort work that is no longer useful, but allow useful prefetches to finish populating the cache.
 
-Use an infinite query when the server returns a cursor:
+The following examples use a hypothetical task domain, not the template’s wired Notes and Todos router. Use an infinite query when the server returns a cursor:
 
 ```tsx
-const input = { noteId, limit: 25 };
-const todos = trpc.todos.list.useInfiniteQuery(input, {
+const input = { projectId, limit: 25 };
+const tasks = trpc.tasks.list.useInfiniteQuery(input, {
   getNextPageParam: (page) => page.nextCursor ?? undefined,
   staleTime: 30_000,
 });
 
-const visibleTodos = todos.data?.pages.flatMap((page) => page.items) ?? [];
+const visibleTasks = tasks.data?.pages.flatMap((page) => page.items) ?? [];
 ```
 
 For predictable changes, update the cache optimistically and keep a rollback snapshot:
 
 ```tsx
 const utils = trpc.useUtils();
-const updateTodo = trpc.todos.update.useMutation({
+const updateTask = trpc.tasks.update.useMutation({
   onMutate: async (change) => {
-    await utils.todos.list.cancel(input);
-    const previous = utils.todos.list.getInfiniteData(input);
-    utils.todos.list.setInfiniteData(input, (current) => applyTodoChange(current, change));
+    await utils.tasks.list.cancel(input);
+    const previous = utils.tasks.list.getInfiniteData(input);
+    utils.tasks.list.setInfiniteData(input, (current) => applyTaskChange(current, change));
     return { previous };
   },
   onError: (_error, _change, context) => {
-    utils.todos.list.setInfiniteData(input, context?.previous);
+    utils.tasks.list.setInfiniteData(input, context?.previous);
   },
-  onSuccess: (savedTodo) => {
-    utils.todos.list.setInfiniteData(input, (current) => reconcileTodo(current, savedTodo));
+  onSuccess: (savedTask) => {
+    utils.tasks.list.setInfiniteData(input, (current) => reconcileTask(current, savedTask));
   },
-  onSettled: () => utils.todos.list.invalidate(input),
+  onSettled: () => utils.tasks.list.invalidate(input),
 });
 ```
 
@@ -197,7 +196,7 @@ const updateTodo = trpc.todos.update.useMutation({
 - Before a migration has been applied anywhere, consolidate corrections to its unshipped schema into one clean change. Never rewrite an already-applied migration; append one deliberate forward migration unless the owning environment lifecycle explicitly recreates the database. Once data is durable or deployed, preserve it deliberately.
 - Preserve existing data deliberately when changing a required column, relationship, identifier, or representation. Use an explicit backfill and staged constraint change when one atomic migration cannot do so safely.
 - Do not combine unrelated schema changes in one migration.
-- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. The end-to-end seed is separate and lives only in `tests/e2e`: it runs only on the E2E database, after the migrations, and adds more test records on top of what they inserted.
+- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. End-to-end tests use a separate migrated database and create their own test records through the API.
 
 The application database is `.dbs/database.db`. Verification may inspect it read-only but must never migrate, seed, reset, truncate, delete, or otherwise mutate it. Verification uses `.dbs/e2e.db` through `E2E_DATABASE_FILE_PATH` or a clearly isolated temporary database. A task sandbox's `.dbs/database.db` is deleted with the sandbox; only committed code reaches the preview.
 
@@ -207,7 +206,7 @@ The shared SQLite connection enables foreign-key enforcement, WAL mode, `NORMAL`
 
 - Measure before adding performance-specific complexity. Record the workload and compare relevant alternatives under the same conditions.
 - Bound database reads, request and response size, concurrency, queues, retained client state, logs, and generated output.
-- Avoid holding an entire growing history in memory or the DOM when a windowed or paginated representation is sufficient.
+- Do not hold an entire growing history in memory or the DOM; use a windowed or paginated representation.
 - Cache only when there is one clear owner, a measurable benefit, and an explicit invalidation or expiry rule.
 - Load large client features behind `import()` or `React.lazy` unless they are required for first paint.
 - Preserve static delivery behavior: hashed assets remain long-cacheable and HTML remains short-cacheable.
@@ -217,7 +216,7 @@ The shared SQLite connection enables foreign-key enforcement, WAL mode, `NORMAL`
 - Put timeouts at external IO boundaries and propagate cancellation to the underlying work.
 - Retry only transient failures, with bounded attempts and delay. Do not retry a non-idempotent operation unless duplicate execution is prevented.
 - Separate required state changes from best-effort follow-up work and make partial-failure behavior explicit.
-- Close listeners, timers, database handles, child processes, temporary files, and other resources in the scope that owns them.
+- Close listeners, timers, database handles, child processes, temporary files, object URLs, and other resources in the scope that owns them.
 - Persist state needed to recover after process restart; do not treat process memory as durable state.
 - Log operational context needed to diagnose a failure without recording credentials or sensitive payloads.
 

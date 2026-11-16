@@ -10,7 +10,7 @@ import {
   type LogSource,
   type ServerLogPayload,
   ServerLogSchema,
-} from "../contracts/logging.js";
+} from "@cw/shared/logging";
 
 /**
  * Maximum number of lines stored for the runtime log file.

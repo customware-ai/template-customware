@@ -45,7 +45,7 @@ The root `tests/` directory is excluded from linting and type checking, but rema
 
 Formatting uses Vite+'s defaults. The root formatting block only excludes generated and temporary paths; it does not override style rules.
 
-Use the installed-version documentation before relying on memory:
+Verify Vite+ APIs and behavior against the installed-version documentation:
 
 - concise tool overview: `node_modules/vite-plus/AGENTS.md`
 - local guide: `node_modules/vite-plus/docs/index.md`

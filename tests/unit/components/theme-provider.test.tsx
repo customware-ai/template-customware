@@ -27,3 +27,39 @@ describe("ThemeProvider", () => {
     expect(window.localStorage.getItem("ui-theme")).toBe("dark");
   });
 });
+
+it("tracks system changes and removes the listener when leaving system mode", async () => {
+  const user = userEvent.setup();
+  const original = window.matchMedia;
+  const media = new EventTarget();
+  let dark = false;
+  Object.defineProperty(window, "matchMedia", { configurable: true, value: () => ({
+    get matches() { return dark; },
+    media: "(prefers-color-scheme: dark)",
+    onchange: null,
+    addEventListener: media.addEventListener.bind(media),
+    removeEventListener: media.removeEventListener.bind(media),
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: media.dispatchEvent.bind(media),
+  }) });
+  try {
+    render(<ThemeProvider><ThemeControl /></ThemeProvider>);
+    expect(document.documentElement).toHaveClass("light");
+    dark = true;
+    media.dispatchEvent(new Event("change"));
+    expect(document.documentElement).toHaveClass("dark");
+    await user.click(screen.getByRole("button", { name: "system" }));
+    dark = false;
+    media.dispatchEvent(new Event("change"));
+    expect(document.documentElement).toHaveClass("dark");
+  } finally {
+    Object.defineProperty(window, "matchMedia", { configurable: true, value: original });
+  }
+});
+
+it("falls back when the stored theme is invalid", () => {
+  window.localStorage.setItem("ui-theme", "invalid");
+  render(<ThemeProvider defaultTheme="light"><ThemeControl /></ThemeProvider>);
+  expect(screen.getByRole("button", { name: "light" })).toBeVisible();
+});

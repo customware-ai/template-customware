@@ -14,23 +14,23 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 
 ## Loading and Pending States
 
-- Never leave a blank area while requested data is unavailable. Render a skeleton or appropriately sized progress state.
+- Never leave a blank area while requested data is unavailable. Render a skeleton matching the expected content or a progress state in the affected area.
 - Use the shared initial loading state for SPA hydration and immediately lazy route content so hydration never hands off to a blank screen. Its full-page loading surfaces expose `aria-busy="true"` until ready.
 - Disable a submitting control and show its pending state by composing the shared `Button` and `Spinner` primitives.
 - Do not replace already available cached data with a loading skeleton during a background refresh.
-- Use optimistic UI when the result is predictable and rollback or reconcile it with the authoritative response.
+- Use optimistic UI when the resulting state can be predicted; roll it back on failure and reconcile it with the authoritative response.
 
 ## Error Feedback
 
 - Translate technical failures into concise, actionable language.
 - Offer retry when the operation is recoverable.
 - Preserve usable cached data when refreshing it fails and clearly indicate when it is stale.
-- Route modules should export an `ErrorBoundary` when they own a meaningful failure surface.
+- Route modules must export an `ErrorBoundary` when they own failures not handled by a more specific boundary.
 - Never show raw stacks, database errors, or internal identifiers to users.
 
 ## Responsive Layout
 
-- Build mobile-first and add wider breakpoints only when content needs them.
+- Build mobile-first and add wider breakpoints when needed to prevent clipped content or unreachable controls.
 - Interactive targets must be at least 44 by 44 CSS pixels.
 - Replace wide tables with an appropriate compact or card presentation on narrow screens.
 - Verify layouts at narrow and wide viewport sizes through the running application.
@@ -51,7 +51,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 ## React Components
 
 - Use functional components with typed props and explicit return types.
-- Prefer semantic HTML and preserve keyboard, focus, screen-reader, and contrast behavior.
+- Use semantic HTML and preserve keyboard, focus, screen-reader, and contrast behavior.
 - Reuse shared UI primitives for repeated behavior. Keep one-use visual composition local.
 - Route modules coordinate rendering and typed client operations; reusable components do not own route or persistence logic.
 

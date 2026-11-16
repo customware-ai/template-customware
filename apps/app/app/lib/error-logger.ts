@@ -1,8 +1,7 @@
 "use client";
 
+import type { FrontendLogPayload } from "@cw/shared/logging";
 import { Result } from "better-result";
-
-type FrontendLogLevel = "debug" | "info" | "warn" | "error";
 
 interface ErrorLoggerOptions {
   endpoint?: string;
@@ -18,19 +17,6 @@ interface ErrorContext {
   stack?: string;
   reason?: unknown;
 }
-
-interface FrontendLogPayload {
-  source: "app";
-  level: FrontendLogLevel;
-  message: string;
-  timestamp: string;
-  page_url: string;
-  context: Record<string, unknown>;
-}
-
-const defaultLoggerOptions: Required<Pick<ErrorLoggerOptions, "endpoint">> = {
-  endpoint: "/logs",
-};
 
 function normalizeErrorContext(event: Event, eventType: ErrorContext["eventType"]): ErrorContext {
   const eventTarget = event.target;
@@ -72,7 +58,7 @@ function buildLogPayload(message: string, context: ErrorContext): FrontendLogPay
     message,
     timestamp: new Date().toISOString(),
     page_url: window.location.href,
-    context: context as unknown as Record<string, unknown>,
+    context: { ...context },
   };
 }
 
@@ -122,7 +108,7 @@ function dispatchFrontendLog(
 export function logFrontendError(
   message: string,
   context: Record<string, unknown>,
-  options?: ErrorLoggerOptions,
+  { endpoint = "/logs", fetchImpl }: ErrorLoggerOptions = {},
 ): void {
   if (typeof window === "undefined") {
     return;
@@ -134,27 +120,19 @@ export function logFrontendError(
   };
 
   const payload = buildLogPayload(message, normalizedContext);
-  const finalOptions = {
-    endpoint: options?.endpoint ?? defaultLoggerOptions.endpoint,
-    fetchImpl: options?.fetchImpl ?? window.fetch,
-  };
-
-  dispatchFrontendLog(payload, finalOptions.fetchImpl, finalOptions.endpoint);
+  dispatchFrontendLog(payload, fetchImpl ?? window.fetch, endpoint);
 }
 
 /**
  * Attach browser error handlers to window + document and async rejection hook.
  * Returns a cleanup function for predictable listener lifecycle.
  */
-export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = {}): () => void {
+export function attachGlobalFrontendErrorHandlers(
+  { endpoint = "/logs", fetchImpl }: ErrorLoggerOptions = {},
+): () => void {
   if (typeof window === "undefined") {
     return () => {};
   }
-
-  const finalOptions = {
-    endpoint: options.endpoint ?? defaultLoggerOptions.endpoint,
-    fetchImpl: options.fetchImpl ?? window.fetch,
-  };
 
   const errorHandler = (event: Event): void => {
     const isScriptError = event instanceof ErrorEvent;
@@ -164,8 +142,8 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
       : `Document error: ${context.target ?? "unknown target"}`;
     dispatchFrontendLog(
       buildLogPayload(message, context),
-      finalOptions.fetchImpl,
-      finalOptions.endpoint,
+      fetchImpl ?? window.fetch,
+      endpoint,
     );
   };
 
@@ -178,8 +156,8 @@ export function attachGlobalFrontendErrorHandlers(options: ErrorLoggerOptions = 
 
     dispatchFrontendLog(
       buildLogPayload(message, context),
-      finalOptions.fetchImpl,
-      finalOptions.endpoint,
+      fetchImpl ?? window.fetch,
+      endpoint,
     );
   };
 

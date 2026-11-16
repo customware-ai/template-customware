@@ -8,12 +8,14 @@ This template is used to build apps with Customware (CW). Customware is the buil
 - Hono API with a typed Notes and Todos tRPC example, relational persistence, and bounded cursor pagination
 - SQLite persistence with Drizzle migrations
 - pnpm workspaces for `apps/*` and `packages/*`
-- source-level shared contracts under `packages/shared`; the app name has its own `@cw/shared/app-name` export so importing it does not eagerly load health validation
-- BetterResult contracts and mapped failure handling across browser, shared, and API code
+- source-level shared contracts under `packages/shared`; the app name has its own lightweight `@cw/shared/app-name` export
+- BetterResult contracts and mapped failure handling across browser and API code
 - Zod 4.6 contracts with lazy server compilation; browser schemas keep the standard parser to avoid an 8 KB gzipped compiler payload and `new Function` CSP requirement
 - Vite+ formatting, linting, task orchestration, and hooks, with TSRS (the Rust port of TypeScript) for type checking and type-aware linting
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
 - one deployable application with the client in `build/client` and server in `build/server`; React and Speedy Router build into separate chunks so app edits rarely change their hashes
+
+The start page introduces the reusable UI components with a theme control and a small chart. The Notes and Todos API remains a separate temporary teaching example.
 
 ## Routing
 
@@ -47,11 +49,3 @@ Speedy Router 0.1.25 declares React 19.2 peers; `pnpm-workspace.yaml` permits Re
 - [Design and User Experience](./design/design.md)
 
 Create additional focused documents under `engineering/`, `platform/`, `design/`, or `agents/` only when the application gains a real subject that needs them. Do not add placeholder documents for systems that do not exist.
-
-## Documentation Workflow
-
-Documentation describes the current implementation, not an aspirational system. Task-maintained documents must remove obsolete values, add new behavior, and update changed behavior in the same task.
-
-For dependency behavior, treat the installed version as the source of truth. Inspect its documentation, type declarations, and JavaScript implementation under `node_modules/` rather than guessing unfamiliar APIs, and use the package's official documentation for additional context.
-
-`docs/engineering/code-rules.md` and `docs/engineering/application-design.md` are system-admin-owned and read-only for autonomous task agents. `AGENTS.md` remains the concise operational entry point and links here rather than duplicating detailed guidance.

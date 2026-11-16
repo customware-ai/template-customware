@@ -2,8 +2,8 @@ import { APP_NAME } from "@cw/shared/app-name";
 import { useEffect, type ReactElement } from "react";
 import { Link, Outlet } from "speedy-router";
 
-import { ThemeProvider } from "./components/theme-provider";
-import { attachGlobalFrontendErrorHandlers, logFrontendError } from "./utils/error-logger";
+import { ThemeProvider } from "~/components/theme-provider";
+import { attachGlobalFrontendErrorHandlers, logFrontendError } from "~/lib/error-logger";
 
 /** Shared providers and frontend error capture for all routes. */
 export function App(): ReactElement {

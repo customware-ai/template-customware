@@ -6,7 +6,8 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./app-name": "./src/app-name.ts"
+    "./app-name": "./src/app-name.ts",
+    "./logging": "./src/logging.ts"
   },
   "dependencies": {
     "better-result": "catalog:",

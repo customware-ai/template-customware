@@ -12,21 +12,19 @@ The browser foundation includes TanStack Query, Tailwind CSS v4, and shadcn comp
 
 ## Remove After the Task Is Done
 
-The shipped UI catalog and Notes and Todos API are temporary examples. Study their patterns, then replace them rather than extending their domain into the product.
+The start page and Notes and Todos API are temporary examples. Replace them rather than extending their domain into the product.
 
 ### When implementing the product UI
 
-- Use `apps/app/app/components/Demo.tsx` and `components/demo/` to understand the available UI components, loading states, lazy boundaries, and interaction patterns.
-- Replace the `<Demo />` route mount with the approved product experience after that understanding is established.
-- Remove `Demo.tsx`, `components/demo/`, and unused demo-only imports. Keep reusable files under `components/ui/` that the product actually uses.
+- The start page introduces reusable components in `apps/app/app/components/ui`, including a chart and theme control. Replace it with the product experience.
 - Do not leave sample copy, sample controls, decorative placeholder behavior, or disconnected screens in the finished UI.
 
 ### When implementing application behavior and persistence
 
 - Use the temporary Notes and Todos slice to understand the intended `contract -> query -> service -> tRPC -> TanStack Query` flow and BetterResult boundaries.
-- Replace the example contracts, active tables, queries, services, procedures, browser calls, tests, E2E seed, and documentation with the real product domain. No `notes`, `todos`, `listTodos`, `createTodo`, sample records, or related runtime behavior should remain unless the product genuinely requires that exact behavior.
+- Replace the example contracts, active tables, queries, services, procedures, browser calls, tests, E2E tests, and documentation with the real product domain. No `notes`, `todos`, `listTodos`, `createTodo`, sample records, or related runtime behavior should remain unless the product genuinely requires that exact behavior.
 - Design the complete initial product schema before generating its migration. Generate one coherent forward product migration that creates the final schema and drops the temporary Notes and Todos tables; do not generate partial work and stack corrective migrations during the same implementation.
-- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. The end-to-end seed is separate and lives only in `tests/e2e`: it runs only on the E2E database, after the migrations, and adds more test records on top of what they inserted. Do not rewrite or remove an already-applied template migration: migration history must remain reproducible even though its temporary tables are removed by the product migration.
+- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. End-to-end tests use a separate database and create their own test records. Do not rewrite or remove an already-applied template migration: migration history must remain reproducible even though its temporary tables are removed by the product migration.
 
 ### Before completing the task
 

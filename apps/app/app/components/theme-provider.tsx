@@ -2,6 +2,7 @@
 
 import { Result } from "better-result";
 import * as React from "react";
+import { z } from "zod";
 
 /**
  * Shared localStorage key for the shell theme mode.
@@ -9,7 +10,8 @@ import * as React from "react";
  */
 const THEME_STORAGE_KEY = "ui-theme";
 
-export type ThemeMode = "dark" | "light" | "system";
+export const ThemeModeSchema = z.enum(["dark", "light", "system"]);
+export type ThemeMode = z.infer<typeof ThemeModeSchema>;
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -61,17 +63,19 @@ export function ThemeProvider({
     }
 
     const storedThemeResult = Result.try({
-      try: () => window.localStorage.getItem(storageKey),
+      try: () => ThemeModeSchema.parse(window.localStorage.getItem(storageKey)),
       catch: toError,
     });
-    const storedTheme = storedThemeResult.unwrapOr(null);
-    return storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
-      ? storedTheme
-      : defaultTheme;
+    return storedThemeResult.unwrapOr(defaultTheme);
   });
 
-  React.useEffect(() => {
+  React.useEffect((): (() => void) | undefined => {
     applyTheme(theme).unwrapOr(undefined);
+    if (theme !== "system") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = (): void => { applyTheme("system").unwrapOr(undefined); };
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, [theme]);
 
   const setTheme = React.useCallback(

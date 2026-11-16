@@ -4,12 +4,6 @@ This template is used to build apps with Customware (CW). Customware is the buil
 
 ## Documentation
 
-See `docs/` for engineering and system documentation.
-
-Start with `docs/main.md` for the implemented foundation, repository map, and documentation index.
-
-**IMPORTANT: ALWAYS read `docs/engineering/code-rules.md` before making, reviewing, or planning code changes. Re-read it after conversation compaction before continuing work.**
-
 Quick pointers:
 
 - Repository-wide implementation rules: `docs/engineering/code-rules.md`.
@@ -20,7 +14,9 @@ Quick pointers:
 - Current browser routes and API endpoints: `docs/platform/routes.md`.
 - Runtime logging and diagnostics: `docs/engineering/observability.md`.
 
-**IMPORTANT: Before starting a change or planning, read the relevant documents from `docs/` to understand the current implementation and affected systems.**
+**IMPORTANT: Before planning, implementing, or reviewing a change, read `docs/main.md`, `docs/engineering/code-rules.md`, `docs/engineering/application-design.md`, and the documentation for every affected system.**
+
+Put disposable local evidence under ignored root `tmp/`; never commit secrets or sensitive diagnostic payloads.
 
 Task-maintained documentation must always match the current implementation. Remove superseded values, add newly introduced behavior, and update anything changed by the task. Add a focused document only when the subject cannot remain clear in an existing one.
 
@@ -39,13 +35,11 @@ When using an installed package, verify unfamiliar or uncertain APIs against the
 
 - `apps/app/` – React 19 SPA using Speedy Router, TanStack Query, shadcn components on Base UI, and Tailwind CSS v4. Route configuration is in `apps/app/app/routes.ts`; route modules, layouts, components, and browser utilities live under `apps/app/app/`. The client build outputs to `build/client`.
 - `apps/api/` – Hono + tRPC API with SQLite persistence through Drizzle. Contracts live in `apps/api/src/contracts`, business orchestration in `apps/api/src/services`, database ownership under `apps/api/src/db`, and tRPC procedures in `apps/api/src/trpc`. The server build outputs to `build/server/start.js`.
-- `packages/shared/` – Source-level values and contracts genuinely consumed by both applications. Shared packages must not import app or API modules.
+- `packages/shared/` – Source-level values and contracts consumed by both applications.
 - `tests/` – Existing unit, integration, and isolated Playwright infrastructure. The autonomous task workflow decides what verification a task requires.
 - `build/client/` and `build/server/` – Generated build artifacts. Never edit generated output directly; rebuild it.
 
-Add a package only for a real cross-workspace boundary. Keep browser-only and server-only code in their owning application.
-
-The UI catalog and Notes and Todos API are temporary teaching examples. Follow the task-intent cleanup requirements in `README.md`; learning from an example does not authorize retaining its sample domain, records, routes, or migrations in the finished product.
+The start page and Notes and Todos API are temporary teaching examples. Follow the task-intent cleanup requirements in `README.md`; learning from an example does not authorize retaining its sample domain, records, routes, or migrations in the finished product.
 
 ## Build and Development Commands
 
@@ -97,10 +91,3 @@ node /workspace/builder/task_complete.mjs \
 ```
 
 Use `--status failed` only when completion is demonstrably impossible with the available task environment. Include a precise summary of the blocker and the work already completed.
-
-## Security & Configuration
-
-- Keep secrets in environment variables. Never commit `.env` files, credentials, database files, or sensitive logs.
-- Validate untrusted transport, persistence, environment, and external input once at the owning Zod boundary.
-- Keep authorization and persistence decisions in server services and database boundaries, not browser components.
-- Runtime diagnostics belong in the ignored repository-root `.runtime.logs`; keep logs free of credentials and sensitive payloads.

@@ -1,4 +1,3 @@
-import { Result } from "better-result";
 import { z } from "zod";
 
 import { APP_NAME } from "./app-name.js";
@@ -10,25 +9,3 @@ export const HealthResponseSchema = z.object({
 });
 
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
-
-export type HealthResponseParseError = {
-  type: "HEALTH_RESPONSE_PARSE_ERROR";
-  message: string;
-  issues: string[];
-};
-
-export type HealthResponseResult = Result<HealthResponse, HealthResponseParseError>;
-
-/**
- * Decodes the shared health contract without leaking a thrown schema failure.
- */
-export function parseHealthResponse(input: unknown): HealthResponseResult {
-  return Result.try({
-    try: () => HealthResponseSchema.parse(input),
-    catch: (cause): HealthResponseParseError => ({
-      type: "HEALTH_RESPONSE_PARSE_ERROR",
-      message: "Health response did not match the shared contract.",
-      issues: cause instanceof z.ZodError ? cause.issues.map((issue) => issue.message) : [],
-    }),
-  });
-}
