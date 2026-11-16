@@ -1,13 +1,15 @@
-import { z } from "zod";
+import { z } from "zod/mini";
+
+const TitleSchema = z.string().check(z.trim(), z.minLength(1), z.maxLength(200));
 
 export const CreateTodoInputSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  note: z
-    .object({
-      title: z.string().trim().min(1).max(200),
-      body: z.string().max(5_000).optional(),
-    })
-    .optional(),
+  title: TitleSchema,
+  note: z.optional(
+    z.object({
+      title: TitleSchema,
+      body: z.optional(z.string().check(z.maxLength(5_000))),
+    }),
+  ),
 });
 
 export type CreateTodoInput = z.infer<typeof CreateTodoInputSchema>;

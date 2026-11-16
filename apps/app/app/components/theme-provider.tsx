@@ -2,7 +2,7 @@
 
 import { Result } from "better-result";
 import * as React from "react";
-import { z } from "zod";
+import { z } from "zod/mini";
 
 /**
  * Shared localStorage key for the shell theme mode.
