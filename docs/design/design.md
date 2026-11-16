@@ -18,7 +18,7 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 - Use the shared initial loading state for SPA hydration and immediately lazy route content so hydration never hands off to a blank screen. Its full-page loading surfaces expose `aria-busy="true"` until ready.
 - Disable a submitting control and show its pending state by composing the shared `Button` and `Spinner` primitives.
 - Do not replace already available cached data with a loading skeleton during a background refresh.
-- Use optimistic UI when the resulting state can be predicted; roll it back on failure and reconcile it with the authoritative response.
+- Make every predictable change optimistic (create, complete or toggle, edit, delete); roll it back on failure and reconcile it with the authoritative response.
 
 ## Error Feedback
 

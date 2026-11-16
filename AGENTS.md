@@ -16,6 +16,8 @@ Quick pointers:
 
 **IMPORTANT: Before planning, implementing, or reviewing a change, read `docs/main.md`, `docs/engineering/code-rules.md`, `docs/engineering/application-design.md`, and the documentation for every affected system.**
 
+Settle contracts and outlines to these engineering rules before any worker starts, for every app including small and single-user ones: cursor-paged lists, optimistic predictable changes, `Button` + `Spinner` pending submits, and invalidation of exactly the queries a write changes. See [application design](docs/engineering/application-design.md) for each rule and its reason.
+
 Put disposable local evidence under ignored root `tmp/`; never commit secrets or sensitive diagnostic payloads.
 
 Task-maintained documentation must always match the current implementation. Remove superseded values, add newly introduced behavior, and update anything changed by the task. Add a focused document only when the subject cannot remain clear in an existing one.

@@ -174,6 +174,7 @@ const saved = Result.try({
 ### Continuation
 
 - Use cursor pagination with continuation for every database list — because a limit or a larger page alone makes later matches unreachable.
+- Never return a list whole because it seems small, personal, or single-user — because every stored collection grows with use and the contract cannot be paged later without changing every caller.
 - Use deterministic total ordering with a unique tie-breaker for non-unique sorts — because ambiguous order skips or repeats tied rows.
 - Include all ordering values in the cursor rather than a timestamp alone — because continuation must identify an exact position.
 - Keep filters, authorization scope, and ordering consistent within a page sequence — because changing the result set invalidates its cursor.
@@ -447,9 +448,12 @@ return (
 
 ### Optimistic updates
 
-- Use optimistic updates only for predictable changes — because a speculative result must have a valid local meaning.
-- Cancel affected queries before taking the rollback snapshot — because an in-flight response can overwrite the prediction.
-- Restore the snapshot when the mutation fails — because rejected predictions must not remain visible.
+- Make every predictable change optimistic, including create, complete or toggle, edit, and delete — because the user should see the result at once instead of waiting for a round trip.
+- Leave a change pessimistic only when its result cannot be predicted locally, such as a server-computed value — because a speculative result must have a valid local meaning.
+- Keep the triggering control disabled with a `Spinner` while the write is in flight, even though the result already shows — because the prediction is not saved yet and a repeat click would send the write twice.
+- Prefer rendering the prediction from the mutation's `variables` over writing it into the cache — because cached pages stay untouched, so a refetch cannot erase it and a failure needs no rollback.
+- When a prediction must be written into the cache, cancel affected queries before taking the rollback snapshot — because an in-flight response can overwrite the prediction.
+- Restore that snapshot when the mutation fails — because rejected predictions must not remain visible.
 - Reconcile authoritative success data — because the server may return a different result.
 
 #### Overlapping mutations
@@ -502,6 +506,18 @@ const create = trpc.tasks.create.useMutation({ onSettled: () => utils.tasks.list
 {
   create.isPending && <li aria-busy="true">{create.variables.title} · Saving…</li>;
 }
+```
+
+#### Optimistic row changes
+
+- Give each row its own mutation and render its pending toggle, edit, or delete from that mutation's `variables` — because a shared mutation exposes only the latest call's variables.
+
+```tsx
+// Good: the row shows its predicted state until the refreshed list arrives.
+const update = trpc.tasks.update.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
+const remove = trpc.tasks.delete.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
+const shown = update.isPending ? { ...task, ...update.variables } : task;
+if (remove.isPending) return null;
 ```
 
 ### Browser Concurrency and State
