@@ -6,9 +6,8 @@ import BetterSqlite3, { type Database as BetterSqliteDatabase } from "better-sql
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { databaseError, type DatabaseError } from "../types/errors.js";
-import * as schema from "./schemas.js";
 
-export type DatabaseClient = BetterSQLite3Database<typeof schema>;
+export type DatabaseClient = BetterSQLite3Database;
 
 const SQLITE_BUSY_TIMEOUT_MS = 10_000;
 
@@ -68,7 +67,7 @@ export function initializeDatabase(): Result<DatabaseClient, DatabaseError> {
       openingSqlite.pragma("journal_mode = WAL");
       openingSqlite.pragma("synchronous = NORMAL");
       openingSqlite.pragma(`busy_timeout = ${SQLITE_BUSY_TIMEOUT_MS}`);
-      const initializedDatabase = drizzle(openingSqlite, { schema });
+      const initializedDatabase = drizzle({ client: openingSqlite });
 
       sqlite = openingSqlite;
       db = initializedDatabase;

@@ -13,8 +13,8 @@ catalog:
   "@types/react": 19.3.0
   "@types/react-dom": 19.3.0
   "@vitejs/plugin-react": 6.2.1
-  drizzle-kit: 0.31.11
-  drizzle-orm: 0.45.4
+  drizzle-kit: 1.0.0-rc.5
+  drizzle-orm: 1.0.0-rc.5
   better-result: 3.0.1
   react: 19.3.1
   react-dom: 19.3.1
