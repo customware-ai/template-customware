@@ -608,10 +608,11 @@ const key = task.projectId === null ? "unassigned" : `project:${task.projectId}`
 
 ### Generation
 
+- Generate the app's first migration from `schemas.ts` with `pnpm db:generate`; the template ships none — because migration history belongs to each app, not the template.
 - Finish schema, relationships, constraints, indexes, and ownership before generating migrations rather than stacking corrections for the same unshipped implementation — because migration history must describe a complete design.
 - Change the Drizzle schema before running `pnpm db:generate` — because generated SQL must come from the schema authority.
 - Review generated SQL — because generated operations can still lose data or encode unintended changes.
-- Keep SQL, snapshot metadata, and journal consistent — because migration tooling relies on their agreement.
+- Keep each migration's SQL and snapshot as generated — because migration tooling relies on their agreement.
 - Treat unexpected follow-up generation as schema drift to resolve before completion — because a second generation should not reveal an unfinished schema.
 
 ### Application and correction

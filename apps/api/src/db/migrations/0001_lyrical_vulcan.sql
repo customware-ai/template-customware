@@ -1,1 +1,0 @@
-CREATE INDEX `idx_todos_created` ON `todos` (`created_at`,`id`);

@@ -2,7 +2,6 @@ import { createRootRoute, createRoute, createRouter, lazyRouteComponent } from "
 
 import { InitialLoadingState } from "./components/initial-loading-state";
 import { App, NotFound, RouteError } from "./root";
-import IndexPage from "./routes/index";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -18,7 +17,8 @@ const layoutRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/",
-  component: IndexPage,
+  // PERF: keep the start page's UI kit, data client and form validation out of the entry chunk.
+  component: lazyRouteComponent(() => import("./routes/index")),
 });
 
 export const router = createRouter({

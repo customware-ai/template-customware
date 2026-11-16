@@ -26,8 +26,8 @@ The start page and Notes and Todos API are temporary examples. Replace them rath
 
 - Use the temporary Notes and Todos slice to understand the intended `contract -> query -> service -> tRPC -> TanStack Query` flow and BetterResult boundaries.
 - Replace the example contracts, active tables, queries, services, procedures, browser calls, tests, E2E tests, and documentation with the real product domain. No `notes`, `todos`, `listTodos`, `createTodo`, sample records, or related runtime behavior should remain unless the product genuinely requires that exact behavior.
-- Design the complete initial product schema before generating its migration. Generate one coherent forward product migration that creates the final schema and drops the temporary Notes and Todos tables; do not generate partial work and stack corrective migrations during the same implementation.
-- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. End-to-end tests use a separate database and create their own test records. Do not rewrite or remove an already-applied template migration: migration history must remain reproducible even though its temporary tables are removed by the product migration.
+- The template ships no migrations. Design the complete initial product schema in `apps/api/src/db/schemas.ts`, replacing the Notes and Todos tables, then run `pnpm db:generate` once to create the app's first migration; do not generate partial work and stack corrective migrations during the same implementation.
+- Records the app needs to open (for example its first site) go in a migration, so `pnpm db:migrate` inserts them everywhere. There is no seed command: the live app and its published copy only run `pnpm db:migrate`, `pnpm build` and `pnpm start`. End-to-end tests use a separate database and create their own test records.
 
 ### Before completing the task
 
