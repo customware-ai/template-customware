@@ -18,6 +18,7 @@ The start page and Notes and Todos API are temporary examples. Replace them rath
 
 - The start page introduces reusable components in `apps/app/app/components/ui`, including a chart and theme control. Replace it with the product experience.
 - Do not leave sample copy, sample controls, decorative placeholder behavior, or disconnected screens in the finished UI.
+- Delete `components/ui` files the product never imports; Tailwind generates CSS for every scanned file.
 
 ### When implementing application behavior and persistence
 

@@ -57,30 +57,6 @@ export function getLogFilePathForSource(): string {
 }
 
 /**
- * Converts optional value into a serializable context record.
- */
-function normalizeContext(value: unknown): Record<string, unknown> {
-  if (value === undefined || value === null) {
-    return {};
-  }
-
-  if (typeof value === "object" && value.constructor === Object) {
-    return value as Record<string, unknown>;
-  }
-
-  return { value };
-}
-
-/**
- * Sanitizes invalid input and ensures valid timestamp.
- */
-function normalizeTimestamp(timestamp?: string): string {
-  return timestamp !== undefined && Number.isNaN(Date.parse(timestamp)) === false
-    ? timestamp
-    : new Date().toISOString();
-}
-
-/**
  * Returns human-readable single-line format with source prefix.
  */
 function formatLogLine(entry: LogEntry & { timestamp: string }): string {
@@ -102,8 +78,7 @@ function persistLogEntry(
     try: () => {
       const normalized: Omit<LogEntry, "timestamp"> & { timestamp: string } = {
         ...entry,
-        timestamp: normalizeTimestamp(entry.timestamp),
-        context: normalizeContext(entry.context),
+        timestamp: entry.timestamp ?? new Date().toISOString(),
       };
 
       const filePath = getLogFilePath();
@@ -212,7 +187,7 @@ export function logServerEvent(
     source: "server",
     level,
     message,
-    context: normalizeContext(context),
+    context,
     page_url: pageUrl,
   });
 }
