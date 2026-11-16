@@ -15,7 +15,7 @@ This template is used to build apps with Customware (CW). Customware is the buil
 - frontend and backend diagnostic logging to ignored `.runtime.logs`
 - one deployable application with the client in `build/client` and server in `build/server`; React and Speedy Router build into separate chunks so app edits rarely change their hashes
 
-The start page introduces the reusable UI components with a theme control and a small chart. The Notes and Todos API remains a separate temporary teaching example.
+The start page introduces reusable UI components with a theme control, plus a temporary Todos panel and activity chart demonstrating paginated API reads, validated optimistic creation, targeted cache refresh, and safe error feedback.
 
 ## Routing
 

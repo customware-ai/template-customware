@@ -1,7 +1,19 @@
 import { Result } from "better-result";
-import { and, desc, eq, like, lt, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, gte, like, lt, or, sql } from "drizzle-orm";
 
-import type { CreateTodoInput, ListTodosInput, TodoCursor } from "../../contracts/todo.js";
+import type { CreateTodoInput } from "@cw/shared/todo";
+
+import {
+  TODO_ACTIVITY_DAYS,
+  TodoActivitySchema,
+  TodoPageSchema,
+  TodoSchema,
+  type ListTodosInput,
+  type Todo,
+  type TodoActivity,
+  type TodoActivityInput,
+  type TodoPage,
+} from "../../contracts/todo.js";
 import { databaseError, type DatabaseError } from "../../types/errors.js";
 import { getDatabase } from "../index.js";
 import { notes, todos } from "../schemas.js";
@@ -20,74 +32,56 @@ const todoSelection = {
   },
 };
 
-export interface TodoRow {
-  readonly todo: typeof todos.$inferSelect;
-  readonly note: { readonly id: number; readonly title: string } | null;
+/** Reads a bounded todo page and validates the stored rows before returning them. */
+export function selectTodoPage(input: ListTodosInput): Result<TodoPage, DatabaseError> {
+  return getDatabase().andThen((db) =>
+    Result.try({
+      try: () => {
+        const rows = db
+          .select(todoSelection)
+          .from(todos)
+          .leftJoin(notes, eq(todos.note_id, notes.id))
+          .where(
+            and(
+              input.completed === undefined ? undefined : eq(todos.completed, input.completed),
+              input.search
+                ? or(like(todos.title, `%${input.search}%`), like(notes.title, `%${input.search}%`))
+                : undefined,
+              input.cursor
+                ? or(
+                    lt(todos.created_at, input.cursor.created_at),
+                    and(
+                      eq(todos.created_at, input.cursor.created_at),
+                      lt(todos.id, input.cursor.id),
+                    ),
+                  )
+                : undefined,
+            ),
+          )
+          .orderBy(desc(todos.created_at), desc(todos.id))
+          .limit(input.limit + 1)
+          .all();
+        const hasNextPage = rows.length > input.limit;
+        const visibleRows = hasNextPage ? rows.slice(0, input.limit) : rows;
+        const lastRow = visibleRows.at(-1)?.todo;
+
+        return TodoPageSchema.parse({
+          items: visibleRows.map((row) => ({ ...row.todo, note: row.note })),
+          nextCursor:
+            hasNextPage && lastRow ? { created_at: lastRow.created_at, id: lastRow.id } : null,
+        });
+      },
+      catch: (cause: unknown) => databaseError("Failed to list todos", cause),
+    }),
+  );
 }
 
-/** Reads a bounded todo page with filtering performed by SQLite. */
-export function listTodoRows(
-  input: ListTodosInput,
-): Promise<Result<{ rows: TodoRow[]; nextCursor: TodoCursor | null }, DatabaseError>> {
-  return Result.gen(async function* () {
-    const db = yield* getDatabase();
-    const page = yield* Result.await(
-      Result.tryPromise({
-        try: async () => {
-          const predicates: SQL[] = [];
-
-          if (input.completed !== undefined) {
-            predicates.push(eq(todos.completed, input.completed));
-          }
-
-          if (input.search) {
-            const search = or(
-              like(todos.title, `%${input.search}%`),
-              like(notes.title, `%${input.search}%`),
-            );
-            if (search) predicates.push(search);
-          }
-
-          if (input.cursor) {
-            const afterCursor = or(
-              lt(todos.created_at, input.cursor.created_at),
-              and(eq(todos.created_at, input.cursor.created_at), lt(todos.id, input.cursor.id)),
-            );
-            if (afterCursor) predicates.push(afterCursor);
-          }
-
-          const rows = await db
-            .select(todoSelection)
-            .from(todos)
-            .leftJoin(notes, eq(todos.note_id, notes.id))
-            .where(predicates.length === 0 ? undefined : and(...predicates))
-            .orderBy(desc(todos.created_at), desc(todos.id))
-            .limit(input.limit + 1);
-          const hasNextPage = rows.length > input.limit;
-          const visibleRows = hasNextPage ? rows.slice(0, input.limit) : rows;
-          const lastRow = visibleRows.at(-1)?.todo;
-
-          return {
-            rows: visibleRows,
-            nextCursor:
-              hasNextPage && lastRow ? { created_at: lastRow.created_at, id: lastRow.id } : null,
-          };
-        },
-        catch: (cause: unknown) => databaseError("Failed to list todos", cause),
-      }),
-    );
-
-    return Result.ok(page);
-  });
-}
-
-/** Creates an optional note and its linked todo as one atomic change. */
-export function createTodoRow(input: CreateTodoInput): Promise<Result<TodoRow, DatabaseError>> {
-  return Result.gen(async function* () {
-    const db = yield* getDatabase();
-    const created = yield* Result.try({
+/** Creates an optional note and its linked todo atomically; invalid stored data rolls both back. */
+export function insertTodo(input: CreateTodoInput): Result<Todo, DatabaseError> {
+  return getDatabase().andThen((db) =>
+    Result.try({
       try: () =>
-        db.transaction((transaction): TodoRow => {
+        db.transaction((transaction): Todo => {
           const note = input.note
             ? transaction
                 .insert(notes)
@@ -101,11 +95,42 @@ export function createTodoRow(input: CreateTodoInput): Promise<Result<TodoRow, D
             .returning()
             .get();
 
-          return { todo, note };
+          return TodoSchema.parse({ ...todo, note });
         }),
       catch: (cause: unknown) => databaseError("Failed to create todo", cause),
-    });
+    }),
+  );
+}
 
-    return Result.ok(created);
-  });
+/** Counts todos created between each of the caller's local day boundaries. */
+export function selectTodoActivity(input: TodoActivityInput): Result<TodoActivity, DatabaseError> {
+  // `created_at` holds SQLite's UTC `YYYY-MM-DD HH:MM:SS`, so ISO bounds are compared in that format.
+  const bounds = input.dayStarts.map((instant) => instant.replace("T", " ").slice(0, 19));
+  const day = sql<number>`case ${sql.join(
+    bounds
+      .slice(1, -1)
+      .map((bound, index) => sql`when ${todos.created_at} < ${bound} then ${index}`),
+    sql` `,
+  )} else ${TODO_ACTIVITY_DAYS - 1} end`;
+  return getDatabase().andThen((db) =>
+    Result.try({
+      try: () => {
+        const rows = db
+          .select({ day, count: count() })
+          .from(todos)
+          .where(
+            and(gte(todos.created_at, bounds[0]), lt(todos.created_at, bounds[TODO_ACTIVITY_DAYS])),
+          )
+          .groupBy(day)
+          .all();
+        return TodoActivitySchema.parse(
+          Array.from(
+            { length: TODO_ACTIVITY_DAYS },
+            (_, index) => rows.find((row) => row.day === index)?.count ?? 0,
+          ),
+        );
+      },
+      catch: (cause: unknown) => databaseError("Failed to count todo activity", cause),
+    }),
+  );
 }

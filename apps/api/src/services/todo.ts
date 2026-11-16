@@ -1,52 +1,33 @@
-import { Result } from "better-result";
-import { ZodError } from "zod";
+import type { Result } from "better-result";
+import type { CreateTodoInput } from "@cw/shared/todo";
 
-import {
-  TodoPageSchema,
-  TodoSchema,
-  type CreateTodoInput,
-  type ListTodosInput,
-  type Todo,
-  type TodoPage,
+import type {
+  ListTodosInput,
+  Todo,
+  TodoActivity,
+  TodoActivityInput,
+  TodoPage,
 } from "../contracts/todo.js";
-import { createTodoRow, listTodoRows, type TodoRow } from "../db/queries/todos.js";
-import type { AppError, ValidationError } from "../types/errors.js";
+import { insertTodo, selectTodoActivity, selectTodoPage } from "../db/queries/todos.js";
+import type { DatabaseError } from "../types/errors.js";
 
 /**
- * TEMPLATE EXAMPLE ONLY. This Notes and Todos service demonstrates an
- * orchestration boundary. Replace it when the real product service layer is
- * implemented.
+ * TEMPLATE EXAMPLE ONLY. This Notes and Todos service is the orchestration
+ * boundary between tRPC and the queries. Replace it when the real product
+ * service layer is implemented.
  */
 
-function validationError(message: string, cause: unknown): ValidationError {
-  return {
-    type: "VALIDATION_ERROR",
-    message,
-    issues: cause instanceof ZodError ? cause.issues.map((issue) => issue.message) : [],
-  };
+/** Lists one page of todos. */
+export function listTodos(input: ListTodosInput): Result<TodoPage, DatabaseError> {
+  return selectTodoPage(input);
 }
 
-function parseTodoRow(row: TodoRow): Result<Todo, ValidationError> {
-  return Result.try({
-    try: () => TodoSchema.parse({ ...row.todo, note: row.note }),
-    catch: (cause) => validationError("Stored todo data is invalid.", cause),
-  });
+/** Creates a todo with its optional note. */
+export function createTodo(input: CreateTodoInput): Result<Todo, DatabaseError> {
+  return insertTodo(input);
 }
 
-export function listTodos(input: ListTodosInput): Promise<Result<TodoPage, AppError>> {
-  return Result.gen(async function* () {
-    const page = yield* Result.await(listTodoRows(input));
-    const items = yield* Result.all(page.rows.map(parseTodoRow));
-    return Result.try({
-      try: () => TodoPageSchema.parse({ items, nextCursor: page.nextCursor }),
-      catch: (cause) => validationError("Todo page data is invalid.", cause),
-    });
-  });
-}
-
-export function createTodo(input: CreateTodoInput): Promise<Result<Todo, AppError>> {
-  return Result.gen(async function* () {
-    const row = yield* Result.await(createTodoRow(input));
-    return parseTodoRow(row);
-  });
+/** Counts todos created per local day for the last week. */
+export function getTodoActivity(input: TodoActivityInput): Result<TodoActivity, DatabaseError> {
+  return selectTodoActivity(input);
 }

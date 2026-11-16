@@ -4,7 +4,7 @@
 
 `apps/app/app/routes.ts` is the authoritative Speedy Router route tree.
 
-The current template defines a shared layout with one index route. Follow the [routing guidance](../main.md#routing) when adding layouts, routes, navigation, queries, or mutations.
+The current template defines a shared layout with one index route, whose temporary Todos panel and activity chart use the Todos API. Follow the [routing guidance](../main.md#routing) when adding layouts, routes, navigation, queries, or mutations.
 
 The application runs in SPA mode. Hono serves `build/client/index.html` for unmatched browser navigations that accept HTML after API and static-file handling. Requests that do not accept HTML return `404`, so missing assets and API-like requests cannot accidentally receive browser HTML while valid route segments containing dots still work.
 
@@ -23,7 +23,7 @@ The template does not install Hono's automatic security-header middleware becaus
 
 Add domain procedures to the tRPC router and keep Hono-specific endpoints for transport concerns that do not belong in tRPC.
 
-The temporary `listTodos` procedure returns bounded cursor pages ordered by creation time and row ID. Its input accepts a maximum page size of 100 and its output contains `items` plus `nextCursor`. `createTodo` atomically creates an optional note and linked todo, then returns the authoritative joined row. The README defines when this entire example is replaced.
+The temporary `listTodos` procedure returns bounded cursor pages ordered by creation time and row ID. Its input accepts a maximum page size of 100 and its output contains `items` plus `nextCursor`. `createTodo` atomically creates an optional note and linked todo, then returns the authoritative joined row. `todoActivity` takes the caller's UTC offset in minutes and returns todo counts for each of the caller's last seven local days, including zero days. The README defines when this entire example is replaced.
 
 ## Route Ordering
 

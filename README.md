@@ -16,9 +16,11 @@ The start page and Notes and Todos API are temporary examples. Replace them rath
 
 ### When implementing the product UI
 
-- The start page introduces reusable components in `apps/app/app/components/ui`, including a chart and theme control. Replace it with the product experience.
+- The start page Todos panel is a temporary end-to-end example of pagination, quick add, cache refresh, and error mapping; study it, then replace it. It has no sign-in or owner scoping, so real product queries must add the authorization the example leaves out.
+- The start page (`apps/app/app/routes/index.tsx`) introduces reusable components in `apps/app/app/components/ui`, including a chart and theme control. Replace it with the product experience.
+- Replace the placeholder favicon (`apps/app/public/favicon.svg`) and the `App` page title with the product's own name and mark.
 - Do not leave sample copy, sample controls, decorative placeholder behavior, or disconnected screens in the finished UI.
-- Delete `components/ui` files the product never imports; Tailwind generates CSS for every scanned file.
+- Remove only the start page's content. Never delete files in `components/ui`, even ones the product does not use yet; later tasks reuse them.
 
 ### When implementing application behavior and persistence
 

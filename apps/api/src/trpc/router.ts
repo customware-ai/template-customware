@@ -1,12 +1,15 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 
+import { CreateTodoInputSchema } from "@cw/shared/todo";
+
 import {
-  CreateTodoInputSchema,
   DEFAULT_TODO_PAGE_SIZE,
   ListTodosInputSchema,
+  TodoActivityInputSchema,
 } from "../contracts/todo.js";
-import { createTodo, listTodos } from "../services/todo.js";
-import type { AppError } from "../types/errors.js";
+import { logServerEvent } from "../services/logging.js";
+import { createTodo, getTodoActivity, listTodos } from "../services/todo.js";
+import type { DatabaseError } from "../types/errors.js";
 
 /**
  * TEMPLATE EXAMPLE ONLY. This Notes and Todos router demonstrates transport
@@ -15,23 +18,32 @@ import type { AppError } from "../types/errors.js";
 
 const t = initTRPC.create();
 
-function toTrpcError(error: AppError): TRPCError {
-  if (error.type === "VALIDATION_ERROR") {
-    return new TRPCError({ code: "BAD_REQUEST", message: error.message });
-  }
-
-  return new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+function toTrpcError(error: DatabaseError): TRPCError {
+  logServerEvent("error", error.message, {
+    type: error.type,
+    detail: error.originalError?.message,
+  }).unwrapOr(undefined);
+  return new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Something went wrong. Please try again.",
+  });
 }
 
 export const appRouter = t.router({
-  listTodos: t.procedure.input(ListTodosInputSchema.optional()).query(async ({ input }) => {
-    const result = await listTodos(input ?? { limit: DEFAULT_TODO_PAGE_SIZE });
+  listTodos: t.procedure.input(ListTodosInputSchema.optional()).query(({ input }) => {
+    const result = listTodos(input ?? { limit: DEFAULT_TODO_PAGE_SIZE });
     if (result.isErr()) throw toTrpcError(result.error);
     return result.value;
   }),
 
-  createTodo: t.procedure.input(CreateTodoInputSchema).mutation(async ({ input }) => {
-    const result = await createTodo(input);
+  todoActivity: t.procedure.input(TodoActivityInputSchema).query(({ input }) => {
+    const result = getTodoActivity(input);
+    if (result.isErr()) throw toTrpcError(result.error);
+    return result.value;
+  }),
+
+  createTodo: t.procedure.input(CreateTodoInputSchema).mutation(({ input }) => {
+    const result = createTodo(input);
     if (result.isErr()) throw toTrpcError(result.error);
     return result.value;
   }),

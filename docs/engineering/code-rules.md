@@ -1,85 +1,190 @@
 # Code Rules
 
-Read this before making, reviewing, or planning code changes. Also read [Application Design](./application-design.md) before designing or changing application behavior, APIs, persistence, queries, pagination, concurrency, or production reliability.
+Read this before making, reviewing, or planning code changes, because it defines the implementation rules. Read [Application Design](./application-design.md) before designing or changing application behavior, APIs, persistence, queries, pagination, concurrency, or production reliability, because those decisions cross owning boundaries.
 
-This file and `application-design.md` are system-admin-owned engineering guidelines. Autonomous task agents must not edit, rewrite, or remove them.
+This file and `application-design.md` are system-admin-owned engineering guidelines. Autonomous task agents must not edit, rewrite, or remove them, because only the owner may change the engineering policy.
+
+Examples use hypothetical task/project APIs, not the template's wired routers. Shared runtime contracts live in `packages/shared`; browser examples use the typed `~/lib/trpc` client. Blocks are focused fragments: surrounding imports, schema imports, UI components, and function/component scope may be omitted.
 
 ## Core Principles
 
-- **Type safety first:** keep TypeScript strict, give functions explicit return types, never use `any`, and never disable TypeScript with `@ts-nocheck`.
-- **Runtime contracts:** define each contract once in Zod and derive its TypeScript type; put contracts used at runtime by both browser and API in `packages/shared`.
-- **Single source of truth:** each contract, database operation, configuration value, and piece of state has one owner. Reuse it directly rather than adding normalization or parallel abstractions.
-- **Least code:** use the smallest correct implementation and remove disabled code, stale comments, and code, configuration, and compatibility paths that a change replaces.
+### Type safety
+
+- Keep TypeScript strict — because unchecked values otherwise cross module boundaries.
+- Give functions explicit return types — because callers need a stable, reviewable contract.
+- Never use `any` — because it bypasses type checking for downstream code.
+- Never use `@ts-nocheck` — because it hides defects across the entire file.
+
+### Contracts and ownership
+
+- Define each runtime contract once in Zod — because duplicate validators drift.
+- Derive each contract's TypeScript type from its schema — because handwritten types can disagree with runtime validation.
+- Put runtime contracts consumed by both browser and API in `packages/shared` — because both boundaries must use the same definition.
+- Give each contract, database operation, configuration value, and piece of state one owner — because competing authorities diverge.
+- Reuse the owning definition directly instead of parallel abstractions or normalization — because extra representations create synchronization work.
+
+### Minimal implementation
+
+- Use the smallest correct implementation — because unnecessary code creates additional failure paths.
+- Remove disabled code, stale comments, and replaced code, configuration, and compatibility paths — because obsolete paths obscure the active behavior.
 
 ## Application Boundaries
 
-- Follow [Application Design](./application-design.md) for layer ownership and production feature design. Add a package only for a genuine cross-workspace boundary.
-- Do not import API implementation or database modules into browser code or bypass query ownership. The browser's type-only import from the API package's public `./trpc` export is the deliberate exception that gives tRPC its end-to-end contract without bundling server code.
-- Shared packages must not import app or API modules.
+- Follow [Application Design](./application-design.md) for layer ownership, database design, pagination, concurrency, performance, and reliability — because SQL, services, and browser caches must enforce compatible behavior.
+- Add packages only for genuine cross-workspace boundaries — because artificial packages obscure ownership.
+- Never bypass query ownership — because database access needs one enforcement boundary.
+- Never import API implementation or database modules into browser code, except a type-only import from the API package's public `./trpc` export — because that exception supplies the tRPC contract without bundling server code.
+- Keep shared packages independent of app and API modules — because shared contracts must not depend on their consumers.
 
 ## TypeScript and Contracts
 
-- Treat URL parameters, form and DOM values, transport, storage, network responses, environment values, and persistence reads as untrusted at each distinct boundary. Parse with the owning Zod schema inside `Result.try`, handle the Result, and pass parsed values inward without re-parsing within that boundary. The API validates independently of the browser; a framework-owned boundary such as tRPC may perform its own parsing.
-- Use exact types; use `unknown` at trust boundaries and refine it with the owning schema. Never use a type assertion to convert unvalidated input or conceal incompatible types, including `as unknown as T`. Fix the contract, inference, or parser instead. `as const` and assertions required at a documented library boundary are allowed only when they do not claim unverified data has another shape.
-- Use `import type` for type-only imports.
-- Import from the defining module; never create or retain barrel files or aggregate re-export modules, including `export *`.
-- Use the `~/` alias for imports rooted at `apps/app/app`.
+### Trust boundaries
+
+- Treat URL parameters, form values, DOM values, transport, storage, network responses, environment values, and persistence reads as `unknown` at each distinct trust boundary — because their runtime shape is not proven by TypeScript.
+- Parse untrusted values with the owning Zod schema inside `Result.try` at an owned boundary — because validation failures need the shared Result contract.
+- Handle the parsing Result before passing its value inward — because invalid input must not enter domain logic.
+- Do not reparse a validated value within the same boundary — because repeated validation duplicates work and ownership.
+- Validate API inputs independently of browser validation, allowing framework-owned parsing such as tRPC `.input` — because clients can bypass the browser.
+
+### Exact types and imports
+
+- Use exact types — because broad shapes conceal contract mismatches.
+- Never assert unvalidated input or incompatible types into another shape, including `as unknown as T` — because assertions provide no runtime proof.
+- Allow `as const` only without claiming an unverified shape — because literal narrowing must preserve the data's proven contract.
+- Allow other assertions only when required at a documented library boundary without claiming an unverified shape — because a library adaptation cannot supply missing runtime proof.
+- Fix the owning contract, inference, or parser instead of concealing a type error — because callers otherwise inherit the mismatch.
+
+### Module paths
+
+- Use `import type` for type-only imports — because runtime dependencies must reflect actual execution needs.
+- Import from the defining module without creating or retaining barrels or aggregate re-exports, including `export *` — because explicit dependency paths expose ownership.
+- Use `~/` for imports rooted at `apps/app/app` — because stable root-relative paths survive file moves.
+
+### Calendar dates
+
+- Use the installed Zod ISO date schema instead of handwritten date validators — because library validation covers valid early years and calendar edge cases.
+
+```ts
+// Bad: this arbitrary cutoff rejects valid ISO dates before 0100.
+const validDate = (value: string) => new Date(value).getFullYear() >= 100;
+```
+
+```ts
+// Good: the shared schema accepts valid ISO dates, including early years.
+const DateSchema = z.iso.date();
+```
 
 ## BetterResult Error Handling
 
-- Use `better-result` for every expected failure in browser and server code, including domain operations, IO, parsing, validation, persistence, serialization, state transitions, and external error mapping. Fallible synchronous operations return `Result<...>` and fallible asynchronous operations return `Promise<Result<...>>`; a function needs no `Result` only if it cannot fail for any value allowed by its input type.
-- Wrap synchronous throw boundaries with `Result.try(...)` and Promise rejection boundaries with `Result.tryPromise(...)`. Every owned fallible helper exposes that Result contract itself; do not rely on one caller to wrap a raw throwing helper. Map `unknown` once into a meaningful tagged or structured error at the boundary that understands it.
-- Compose dependent work with `Result.gen(...)`, `yield*`, and `Result.await(...)`. Combine independent Result operations with `Result.all` or `Result.allAsync`; do not use `Promise.all` as a substitute for typed failure composition. Use `map`, `mapError`, `andThen`, or `andThenAsync` for short transformations. Never throw an expected failure from inside a Result flow.
-- Use `Result.tryPromise` retry options only for idempotent operations that are safe to repeat. Keep retries bounded, use backoff, and pass its attempt `signal` to the underlying cancellation-aware API. Supplying a signal to BetterResult does not cancel active IO unless it is forwarded.
-- Check `.isErr()` or `.isOk()` before accessing a branch, or use exhaustive `match`. Show only messages explicitly mapped from structured error codes; use a fixed generic message for unknown failures. Never show raw `error.message`, database errors, stacks, credentials, or sensitive values.
-- Treat `Panic` and invariant violations as defects, not expected error variants. Do not widen every Result error to `unknown` or `Error` merely because an underlying dependency can throw.
+### Expected failures
+
+- Use `better-result` for every expected browser and server failure, including domain work, IO, parsing, validation, persistence, serialization, state transitions, and external error mapping — because callers need one composable failure contract.
+- Return `Result` from fallible synchronous functions — because callers must handle failure without catching exceptions.
+- Return `Promise<Result>` from fallible asynchronous functions — because rejection alone cannot describe expected failure types.
+- Omit Result only when failure is impossible for every value allowed by the input type — because the signature must describe all allowed executions.
+- Give every owned fallible helper its own Result contract rather than relying on a caller's wrapper — because other callers need the same safety.
+
+### Wrapping and composition
+
+- Wrap synchronous throw boundaries with `Result.try` — because dependency exceptions must become structured failures.
+- Wrap Promise rejection boundaries with `Result.tryPromise` — because rejected IO needs the same failure channel.
+- Map `unknown` once to a meaningful tagged or structured error at the boundary that understands it — because later layers lack the original operation's context.
+- Compose dependent work with `Result.gen`, `yield*`, and `Result.await` for asynchronous Results — because composition propagates typed failures without manual branching.
+- Combine independent synchronous Results with `Result.all` — because every item must succeed without silently dropping failures.
+
+### Asynchronous composition and retries
+
+- Combine independent asynchronous Result operations with `Result.allAsync` — because their IO can run concurrently while preserving typed failures.
+- Never substitute `Promise.all` for typed Result failure composition — because it does not propagate the Result error channel.
+- Use `map`, `mapError`, `andThen`, or `andThenAsync` for short transformations — because small transformations need no extra generator flow.
+- Never throw expected failures inside a Result flow — because that bypasses the declared error channel.
+- Use `Result.tryPromise` retries only for safe idempotent operations — because repeating unsafe work can duplicate effects.
+
+### Retry bounds and safe errors
+
+- Bound retry attempts with backoff — because repeated failures must not create unbounded load.
+- Forward each attempt's signal to cancellation-aware IO — because supplying a signal to BetterResult alone does not stop active IO.
+- Check `.isErr()` or `.isOk()` before branch access, or use exhaustive `match` — because only the active branch contains the corresponding value.
+- Show only explicitly mapped structured-code messages, using a fixed generic message otherwise — because unknown error text is not a safe UI contract.
+- Never display raw errors, database messages, stacks, credentials, or sensitive values — because they can disclose internal or private data.
+
+### Defects
+
+- Treat `Panic` and invariant violations as defects rather than expected variants — because they indicate broken program assumptions.
+- Do not widen Result errors to `unknown` or `Error` merely for dependency throws — because that erases actionable failure types.
 
 ### Correct BetterResult Boundaries
 
-- Do not wrap an API that already returns `Result`; compose or return that Result directly. Do not add `Result.try` around `safeParse`, since `safeParse` already returns an explicit failure. This repository uses `parse` inside `Result.try` at owned schema boundaries to keep one Result contract.
-- Keep framework-required contracts intact. React lazy imports must return normal import Promises, React effects must return cleanup functions, and framework callbacks must retain their required signatures.
-- Throw only when adapting a handled Result into a framework contract that requires throwing, such as a final `TRPCError`, or for an immediate programming invariant such as using a context hook outside its provider.
-- `Result.unwrap` is for tests, executable entrypoints, and similarly terminal boundaries where failure must stop execution. Never unwrap inside normal domain, service, persistence, or UI flows.
-- An isolated pre-hydration script cannot import application modules; keep its minimal local fallback handling rather than duplicating BetterResult inside serialized script text.
-- Intentional UI fire-and-forget work may use `void` only at the React or browser callback boundary after the operation owns its rejection and returns `Promise<Result<...>>`. A framework-owned operation is also allowed when the framework handles failures and exposes error state, as TanStack Query does for `fetchNextPage`.
+- Compose or return an existing Result directly — because wrapping it adds a redundant failure layer.
+- Never wrap `safeParse` in `Result.try` — because `safeParse` already reports failure explicitly.
+- Preserve framework signatures, including normal lazy-import Promises, effect cleanup functions, and callback signatures — because frameworks control those lifecycles.
+- Throw only when adapting a handled Result to a framework requiring throws, such as `TRPCError`, or for an immediate programming invariant such as a context hook outside its provider — because ordinary application failures belong in Results.
+
+### Terminal and callback boundaries
+
+- Use `Result.unwrap` only at tests, executable entrypoints, and similarly terminal boundaries where failure must stop execution — because normal domain, service, persistence, and UI flows must handle the Result.
+- Keep minimal local fallback handling in isolated pre-hydration scripts — because these scripts cannot import app modules and must not duplicate BetterResult in serialized text.
+- Use `void` for intentional UI fire-and-forget only at a React or browser callback after the operation handles rejection and returns `Promise<Result>` — because discarded rejections otherwise escape their owner.
+- Allow ordinary Promises for framework-managed UI operations such as `fetchNextPage` only when the framework handles failure and exposes error state — because the framework then owns the rejection channel.
 
 ### BetterResult Patterns
 
-Parse an owned Notes API boundary once and map the thrown library error into a stable application error:
+Parse owned boundaries once:
 
 ```ts
-const NoteSchema = z.object({ id: z.string().uuid(), title: z.string().min(1) });
-type Note = z.infer<typeof NoteSchema>;
+// Bad: unvalidated input crosses the boundary as a claimed type.
+const task = unknownValue as Task;
+```
 
-function parseNote(input: unknown): Result<Note, ValidationError> {
+```ts
+// Good: parse once and map invalid input to a structured error.
+const TaskIdSchema = z.number().int().positive();
+const TaskSchema = z.object({ id: TaskIdSchema, title: z.string().min(1) });
+type Task = z.infer<typeof TaskSchema>;
+
+/** Parses untrusted task data and maps validation failures. */
+function parseTask(input: unknown): Result<Task, ValidationError> {
   return Result.try({
-    try: () => NoteSchema.parse(input),
+    try: () => TaskSchema.parse(input),
     catch: (cause) => ({
       type: "VALIDATION_ERROR",
-      message: "Note data is invalid.",
+      message: "Task data is invalid.",
       issues: cause instanceof z.ZodError ? cause.issues.map((issue) => issue.message) : [],
     }),
   });
 }
 ```
 
-Bound retries and forward BetterResult's attempt signal to the underlying request:
+**Bounded request.**
 
 ```ts
-function loadNote(
-  noteId: string,
+// Bad: retrying without forwarding cancellation leaves IO running.
+let response;
+try {
+  response = await fetch(`/api/tasks/${taskId}`);
+} catch {
+  response = await fetch(`/api/tasks/${taskId}`);
+}
+```
+
+```ts
+// Good: bound retries and forward each attempt signal.
+/** Loads a task with bounded retries and cancellation. */
+function loadTask(
+  taskId: number,
   signal: AbortSignal,
-): Promise<Result<Note, RequestError | ValidationError>> {
+): Promise<Result<Task, RequestError | ValidationError>> {
+  const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(10_000)]);
   return Result.gen(async function* () {
     const response = yield* Result.await(
       Result.tryPromise(
         {
           try: ({ signal: attemptSignal }) =>
-            fetch(`/api/notes/${noteId}`, { signal: attemptSignal }),
+            fetch(`/api/tasks/${taskId}`, { signal: attemptSignal }),
           catch: (cause) => new RequestError({ cause }),
         },
         {
-          signal,
+          signal: requestSignal,
           retry: { times: 2, delayMs: 150, backoff: "exponential" },
         },
       ),
@@ -94,47 +199,66 @@ function loadNote(
       }),
     );
 
-    return parseNote(input);
+    return parseTask(input);
   });
 }
 ```
 
-Wrap independent fallible operations separately, then combine their Results concurrently. Do not hide raw rejecting promises inside `Promise.all`, and do not pass raw promises to `Result.allAsync` because a rejection there is a `Panic`:
+- Validate and cap `pageSize` before calling the remote page helpers — because this composition helper assumes bounded, valid inputs.
+- Require each remote page helper to return continuation — because a cap alone makes later records unreachable.
+- Wrap each independent fallible operation in its own Result contract — because combining raw rejecting promises can turn an expected failure into a `Panic`.
 
 ```ts
+// Bad: independent Result operations wait for each other.
+const tasks = await fetchTasksPage({ cursor: taskCursor, pageSize });
+const projects = await fetchProjectsPage({ cursor: projectCursor, pageSize });
+```
+
+```ts
+// Good: independent Results run concurrently with typed failure composition.
+/** Loads two independent remote pages. */
 function loadWorkspace(
-  noteCursor: number | undefined,
-  todoCursor: number | undefined,
+  taskCursor: number | undefined,
+  projectCursor: number | undefined,
   pageSize: number,
-): Promise<Result<{ notes: NotePage; todos: TodoPage }, DatabaseError>> {
+): Promise<Result<{ tasks: TaskPage; projects: ProjectPage }, RequestError>> {
   return Result.gen(async function* () {
-    const [notes, todos] = yield* Result.await(
+    const [tasks, projects] = yield* Result.await(
       Result.allAsync([
-        listNotesPage({ cursor: noteCursor, pageSize }),
-        listTodosPage({ cursor: todoCursor, pageSize }),
+        fetchTasksPage({ cursor: taskCursor, pageSize }),
+        fetchProjectsPage({ cursor: projectCursor, pageSize }),
       ] as const),
     );
 
-    return Result.ok({ notes, todos });
+    return Result.ok({ tasks, projects });
   });
 }
 ```
 
-Each owning query returns a page with continuation. Validate and cap `pageSize` before this helper.
+See [pagination](./application-design.md#pagination-and-bounded-reads) for page continuation and caps.
 
-Use `Result.all` for synchronous Result collections when every item must be valid:
+**Synchronous collections.**
 
 ```ts
-const todos = yield * Result.all(todoRows.map(parseTodo));
+// Bad: dropping invalid rows silently loses data.
+const parsedTasks = taskRows.flatMap((row) => {
+  const parsed = parseTask(row);
+  return parsed.isOk() ? [parsed.value] : [];
+});
 ```
 
-For the installed API, inspect `node_modules/better-result/README.md`, `dist/index.d.mts`, and `dist/index.mjs`. The official reference is <https://better-result.dev/reference/result>.
+```ts
+// Good: preserve a failure if any row is invalid.
+const parsedTasks = Result.all(taskRows.map(parseTask));
+```
+
+- Inspect installed `node_modules/better-result/README.md`, `dist/index.d.mts`, and `dist/index.mjs` before relying on its API — because the [reference](https://better-result.dev/reference/result) may describe a different version.
 
 ### Frontend Boundary Examples
 
-These examples illustrate a task domain whose runtime schemas are shared in `packages/shared`. The API independently validates the same request contract. Imports use the template's typed `~/lib/trpc` client.
+**Search parameters.**
 
-**Search parameters.** The shared positive ID schema owns the invariant.
+- Parse URL representations into the shared domain schema — because transport syntax does not prove the domain invariant.
 
 ```ts
 // Bad: duplicates the contract and accepts zero.
@@ -156,6 +280,7 @@ const SearchSchema = z.object({
     .optional(),
 });
 
+/** Parses URL search parameters. */
 function parseSearch(
   search: string,
 ): Result<z.infer<typeof SearchSchema>, { type: "INVALID_SEARCH" }> {
@@ -172,33 +297,39 @@ if (filter.isErr()) {
 return <TaskList filter={filter.value} />;
 ```
 
-**Select values.** DOM values are strings, not proven domain values.
+**Select values.**
+
+- Parse select values with the shared API schema — because DOM strings are not proven domain values.
 
 ```tsx
-// Bad
-onChange={(event) => update({ status: event.currentTarget.value as TaskStatus })}
+// Bad: asserting the DOM string bypasses the contract.
+<select onChange={(event) => update({ status: event.currentTarget.value as TaskStatus })} />
 ```
 
 ```tsx
 // Good: TaskStatusSchema is the shared API contract.
-onChange={(event) => {
-  const status = Result.try({
-    try: () => TaskStatusSchema.parse(event.currentTarget.value),
-    catch: () => ({ type: "INVALID_STATUS" as const }),
-  });
-  if (status.isErr()) {
-    setError("Choose a valid status.");
-    return;
-  }
-  update({ status: status.value });
-}}
+<select
+  onChange={(event) => {
+    const status = Result.try({
+      try: () => TaskStatusSchema.parse(event.currentTarget.value),
+      catch: () => ({ type: "INVALID_STATUS" as const }),
+    });
+    if (status.isErr()) {
+      setError("Choose a valid status.");
+      return;
+    }
+    update({ status: status.value });
+  }}
+/>
 ```
 
-**Mutation errors.** Map a code only when the mutation contract guarantees its meaning; otherwise use the generic message.
+**Mutation errors.**
+
+- Map user messages from a structured code only when the mutation contract guarantees its meaning — because one code can represent different failures in different operations.
 
 ```ts
 // Bad: arbitrary server or network messages can disclose internals.
-onError: (error) => setError(error.message),
+const save = trpc.tasks.create.useMutation({ onError: (error) => setError(error.message) });
 ```
 
 ```ts
@@ -213,100 +344,113 @@ const save = trpc.tasks.create.useMutation({
 });
 ```
 
-**Mutation cache.** Update authoritative detail data and invalidate only affected list variants; include other affected procedures such as counts.
-
-```ts
-// Bad: invalidates unrelated queries.
-onSuccess: () => queryClient.invalidateQueries(),
-```
-
-```ts
-// Good: an update can change task-list membership and ordering.
-const utils = trpc.useUtils();
-const update = trpc.tasks.update.useMutation({
-  onSuccess: async (saved) => {
-    utils.tasks.byId.setData({ id: saved.id }, saved);
-    await utils.tasks.list.invalidate();
-  },
-});
-```
-
-**Paginated list.** The server returns `{ items, nextCursor }` and accepts an optional `cursor`; a limit without continuation is not pagination.
-
-```tsx
-// Bad: records after the first 500 cannot be reached.
-const tasks = trpc.tasks.list.useQuery({ limit: 500 });
-```
-
-```tsx
-// Good: continue until the server reports there is no next page.
-const tasks = trpc.tasks.list.useInfiniteQuery(
-  { limit: 25 },
-  {
-    getNextPageParam: (page) => page.nextCursor ?? undefined,
-  },
-);
-const items = tasks.data?.pages.flatMap((page) => page.items) ?? [];
-return (
-  <>
-    <TaskList items={items} />
-    {tasks.hasNextPage && (
-      <button disabled={tasks.isFetchingNextPage} onClick={() => void tasks.fetchNextPage()}>
-        {tasks.isFetchingNextPage ? "Loading…" : "Load more"}
-      </button>
-    )}
-  </>
-);
-```
-
-Handle initial loading, empty, and error states in the owning UI; preserve already loaded pages when a later page fails. Review changed input boundaries, error displays, cache effects, and lists; verify invalid input, affected and unaffected cache entries, and access beyond the first page.
-
-## Database and Migrations
-
-- Follow [Application Design](./application-design.md) for relational modeling, constraints, indexes, queries, pagination, transactions, and migration design.
-
 ## Code Quality and Modules
 
-- Use clear, descriptive names and keep functions focused on one responsibility.
-- Use explicit, linear control flow instead of clever chains and invisible mutation.
-- Use JSDoc before functions, classes, and non-obvious logic blocks. Inline comments explain why a constraint exists, not what plainly visible code does.
-- Do not add a wrapper, fallback, cache, retry loop, helper, or abstraction without a real boundary or repeated responsibility.
-- Never use `oxlint-disable` or weaken type generation, compiler settings, lint rules, ignore patterns, or check scripts to hide a diagnostic. Fix its cause.
-- Let Vite+ and Oxfmt own formatting; do not add a competing formatter configuration.
-- Declare each package where it runs, pinned to an exact version:
-  - Server packages imported by `apps/api`: root `dependencies`, added with `pnpm add -w <package>`. The root runs the built server, and the server build fails if a package it imports is not installed there.
-  - Browser packages: `apps/app/package.json`, added with `pnpm --filter @cw/app add <package>`.
-  - Packages used by more than one workspace, and families whose versions must match (tRPC, Drizzle, React, Vite+): a `catalog:` entry in `pnpm-workspace.yaml`, referenced as `catalog:` by every workspace that uses them.
-  - Tests, configs, and script tools: root `devDependencies`.
-- Load a route, component, or dependency likely to add roughly 50 kB or more to a client chunk behind `import()` or `React.lazy` unless it is required for first paint. Examples include charting packages such as TanStack Charts, data-grid and table engines such as TanStack Table, rich editors, maps, PDF viewers, analytics dashboards, and large demo or reference surfaces. Leave a short comment at the lazy boundary explaining why it must remain lazy.
+### Readable code
+
+- Use clear, descriptive names — because readers must identify intent without tracing implementation.
+- Keep each function focused on one responsibility — because unrelated work hides coupling and complicates testing.
+- Use explicit, linear control flow instead of clever chains or invisible mutation — because execution and state changes must be easy to follow.
+- Put JSDoc before functions, classes, and non-obvious logic blocks — because their contracts and intent need local explanation.
+- Make inline comments explain why a constraint exists rather than restating visible code — because reasoning is the information code alone cannot supply.
+
+### Abstractions and diagnostics
+
+- Add wrappers, fallbacks, caches, retry loops, helpers, or abstractions only for a real boundary or repeated responsibility — because unnecessary layers obscure the implementation.
+- Never hide diagnostics with `oxlint-disable` or weaker type generation, compiler settings, lint rules, ignores, or check scripts — because suppression leaves the underlying defect intact.
+- Fix the cause of each diagnostic — because callers still encounter defects hidden from tooling.
+- Let Vite+ and Oxfmt own formatting without competing formatter configuration — because multiple formatting authorities produce inconsistent output.
+
+### Dependencies
+
+- Pin each dependency to an exact version — because floating resolutions make builds inconsistent.
+- Declare server imports in root `dependencies` using `pnpm add -w <package>` — because the root runs the built server and its build requires those packages there.
+- Declare browser imports in `apps/app/package.json` using `pnpm --filter @cw/app add <package>` — because Vite resolves browser imports from that workspace.
+- Put dependencies used by multiple workspaces and version-matched families such as tRPC, Drizzle, React, and Vite+ in one exact-version `pnpm-workspace.yaml` catalog entry — because mismatched versions can break shared types and runtime behavior.
+- Reference that shared version as `catalog:` from every consuming workspace — because a direct version can bypass catalog consistency.
+- Declare test, configuration, and script tools in root `devDependencies` — because root checks and scripts must resolve the tools they execute.
+
+## Frontend
+
+### Required guides
+
+- Read [Speedy Router](../main.md#routing) before routing, navigation, query, or mutation work — because integration rules determine route and data lifecycles.
+- Read the [design guide](../design/design.md) before UI work — because loading, errors, accessibility, and responsive behavior must follow the existing interaction rules.
+
+### UI ownership
+
+- Use Speedy Router for route identity and navigation — because a second route authority creates conflicting navigation state.
+- Use TanStack Query through tRPC for server state, following [browser state](./application-design.md#browser-server-state) and [pagination](./application-design.md#pagination-and-bounded-reads) — because one cache must own fetching and reconciliation.
+- Use shadcn on Base UI for accessible component behavior — because the established component system supplies consistent interaction semantics.
+- Use Tailwind CSS v4 for styling — because existing theme tokens and component styles use its utility pipeline.
+- Do not introduce another router, server-state cache, component system, or styling system — because parallel systems duplicate ownership.
+
+### Components and loading
+
+- Use functional React components with typed props — because component inputs need explicit contracts.
+- Use composition instead of prop drilling and configuration-heavy components — because composed children keep dependencies local.
+- Lazy-load routes, components, or dependencies adding roughly 50 kB or more to a client chunk unless required for first paint — because unnecessary initial code delays startup.
+- Comment why each large-feature boundary must remain lazy — because later eager imports can silently regress startup performance.
+
+Large-feature examples include TanStack Charts, TanStack Table, editors, maps, PDF viewers, dashboards, and large demo or reference surfaces.
 
 ```tsx
-// This chart is large and is not required for first paint.
-const TodoActivityChart = lazy(() => import("./todo-activity-chart"));
+// Bad: an eager import adds the chart to the initial chunk.
+import TaskActivityChart from "./task-activity-chart";
+```
 
-function TodoAnalyticsPanel(): ReactElement {
+```tsx
+// Good: this large chart is not required for first paint.
+const TaskActivityChart = lazy(() => import("./task-activity-chart"));
+
+/** Renders the lazy-loaded analytics panel. */
+function TaskAnalyticsPanel(): ReactElement {
   return (
     <Suspense fallback={<ChartSkeleton />}>
-      <TodoActivityChart />
+      <TaskActivityChart />
     </Suspense>
   );
 }
 ```
 
-## Frontend
-
-- Read [Speedy Router](../main.md#routing) before routing, navigation, query, or mutation work.
-- Read the [design guide](../design/design.md) before UI work.
-- Use Speedy Router for route identity and navigation, TanStack Query through tRPC for server state, shadcn components on Base UI for accessible behavior, and Tailwind CSS v4 for styling. Follow [Application Design](./application-design.md#browser-server-state) for mutation cache updates and [pagination](./application-design.md#pagination-and-bounded-reads).
-- Use functional React components with typed props and explicit return types.
-- Use composition instead of prop drilling and configuration-heavy components.
-- Do not introduce another router, server-state cache, component system, or styling system.
-
 ## Performance and Cleanup
 
-- Follow [Application Design](./application-design.md) for production performance, bounded work, caching, retries, concurrency, and reliability.
-- Use direct transforms instead of avoidable copying and long collection chains.
+- Use direct transforms instead of avoidable copies or long collection chains — because intermediate collections add allocation and traversal work.
 
-## Documentation
+## Tests
 
-- Keep secrets in environment variables; never commit `.env` files, credentials, database files, or sensitive logs. Put runtime diagnostics in the ignored repository-root `.runtime.logs` without credentials or sensitive payloads.
+### Coverage and isolation
+
+- Review changed input boundaries, error displays, cache effects, and lists — because cross-boundary regressions can escape local checks.
+- Verify invalid input at each changed boundary — because runtime callers can bypass static types.
+- Verify affected and unaffected cache entries after mutations — because reconciliation must update relevant data without disturbing unrelated queries.
+- Verify access beyond page one — because a correct first page does not prove continuation.
+- Give each test its own records rather than depending on another test's data — because execution order must not affect results.
+
+### Cleanup
+
+- Expose cleanup failures rather than swallowing them — because hidden residue contaminates later tests.
+- Unwrap Result-based test setup, assertions, and cleanup at the test boundary — because these failures must fail the test.
+
+```ts
+// Bad: another test owns the record and cleanup failures disappear.
+await deleteTask(sharedTaskId).catch(() => {});
+```
+
+```ts
+// Good: this test owns its data and each Result failure stops the test.
+const task = Result.unwrap(await createTask());
+try {
+  Result.unwrap(await verifyTask(task.id));
+} finally {
+  Result.unwrap(await deleteTask(task.id));
+}
+```
+
+## Secrets and Diagnostics
+
+- Keep secrets in environment variables rather than source, committed configuration, URLs, or logs — because those surfaces expose values beyond the runtime owner.
+- Never commit `.env` files, credentials, database files, or sensitive logs — because repository history preserves their contents.
+- Write sanitized runtime diagnostics to ignored root `.runtime.logs` — because one excluded destination keeps operational output out of source history.
+- Include operational context needed to diagnose failures — because an error without its operation and scope is difficult to investigate.
+- Exclude credentials and sensitive payloads from diagnostics — because ignored files can still be read or shared.

@@ -20,16 +20,6 @@ export const TodoSchema = z.object({
   updated_at: z.string(),
 });
 
-export const CreateTodoInputSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  note: z
-    .object({
-      title: z.string().trim().min(1).max(200),
-      body: z.string().max(5_000).optional(),
-    })
-    .optional(),
-});
-
 /** Stable cursor for the todo list's descending `(created_at, id)` ordering. */
 export const TodoCursorSchema = z.object({
   created_at: z.string().min(1),
@@ -51,8 +41,19 @@ export const TodoPageSchema = z.object({
   nextCursor: TodoCursorSchema.nullable(),
 });
 
+export const TODO_ACTIVITY_DAYS = 7;
+
+/** The caller's local midnights for each charted day, followed by the end of today. */
+export const TodoActivityInputSchema = z.object({
+  dayStarts: z.array(z.iso.datetime()).length(TODO_ACTIVITY_DAYS + 1),
+});
+
+export const TodoActivitySchema = z
+  .array(z.number().int().nonnegative())
+  .length(TODO_ACTIVITY_DAYS);
+
 export type Todo = z.infer<typeof TodoSchema>;
-export type TodoCursor = z.infer<typeof TodoCursorSchema>;
 export type TodoPage = z.infer<typeof TodoPageSchema>;
-export type CreateTodoInput = z.infer<typeof CreateTodoInputSchema>;
 export type ListTodosInput = z.infer<typeof ListTodosInputSchema>;
+export type TodoActivityInput = z.infer<typeof TodoActivityInputSchema>;
+export type TodoActivity = z.infer<typeof TodoActivitySchema>;

@@ -37,6 +37,7 @@ export const todos = sqliteTable(
       .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [
+    index("idx_todos_created").on(table.created_at, table.id),
     index("idx_todos_note").on(table.note_id),
     index("idx_todos_completed_created").on(table.completed, table.created_at, table.id),
   ],
