@@ -449,9 +449,7 @@ return (
 ### Optimistic updates
 
 - Make every predictable change optimistic, including create, complete or toggle, edit, and delete — because the user should see the result at once instead of waiting for a round trip.
-- Leave a change pessimistic only when its result cannot be predicted locally, such as a server-computed value — because a speculative result must have a valid local meaning.
-- Keep the triggering control disabled with a `Spinner` while the write is in flight, even though the result already shows — because the prediction is not saved yet and a repeat click would send the write twice.
-- Prefer rendering the prediction from the mutation's `variables` over writing it into the cache — because cached pages stay untouched, so a refetch cannot erase it and a failure needs no rollback.
+- Keep the triggering control disabled with a `Spinner` while the write is in flight and the control is still on screen, even though the result already shows — because the prediction is not saved yet and a repeat click would send the write twice.
 - When a prediction must be written into the cache, cancel affected queries before taking the rollback snapshot — because an in-flight response can overwrite the prediction.
 - Restore that snapshot when the mutation fails — because rejected predictions must not remain visible.
 - Reconcile authoritative success data — because the server may return a different result.
@@ -489,10 +487,12 @@ const update = trpc.tasks.update.useMutation({
 // The edit form passes disabled={update.isPending} to its Save control.
 ```
 
-#### Optimistic creates
+#### Predictions from mutation variables
 
-- Show a pending create from the mutation's `variables` instead of inserting a temporary row into list caches — because any background refetch replaces cached pages and erases a temporary row.
-- Return the invalidation promise from `onSettled` — because the mutation then stays pending until the refreshed list contains the saved row, so the pending row never flickers away.
+- Render a pending create, toggle, edit, or delete from its mutation's `variables` instead of writing it into list caches — because a background refetch replaces cached pages and erases a temporary row, while untouched caches need no rollback.
+- Give each row its own mutation — because a shared mutation exposes only the latest call's variables.
+- Return the invalidation promise from `onSettled` — because the mutation then stays pending until the refetch settles, so a successful prediction never flickers away.
+- Show the list's refresh-failed notice with Retry when that refetch fails — because the prediction ends with the mutation and the cached list is then stale.
 
 ```tsx
 // Bad: a focus or polling refetch during the save replaces the pages and drops the temporary row.
@@ -500,20 +500,13 @@ onMutate: () => utils.tasks.list.setInfiniteData(input, (data) => withTemporaryR
 ```
 
 ```tsx
-// Good: the pending row comes from the mutation itself until the refreshed list includes the saved row.
+// Good: each prediction comes from its own mutation until the refreshed list arrives.
 const create = trpc.tasks.create.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
 // In the list:
 {
   create.isPending && <li aria-busy="true">{create.variables.title} · Saving…</li>;
 }
-```
-
-#### Optimistic row changes
-
-- Give each row its own mutation and render its pending toggle, edit, or delete from that mutation's `variables` — because a shared mutation exposes only the latest call's variables.
-
-```tsx
-// Good: the row shows its predicted state until the refreshed list arrives.
+// In each row:
 const update = trpc.tasks.update.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
 const remove = trpc.tasks.delete.useMutation({ onSettled: () => utils.tasks.list.invalidate() });
 const shown = update.isPending ? { ...task, ...update.variables } : task;
