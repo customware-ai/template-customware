@@ -18,6 +18,7 @@ import type { DatabaseError } from "../types/errors.js";
 
 const t = initTRPC.create();
 
+/** Logs a database failure and returns a safe transport error. */
 function toTrpcError(error: DatabaseError): TRPCError {
   logServerEvent("error", error.message, {
     type: error.type,

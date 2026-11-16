@@ -49,7 +49,7 @@ describe("Notes and Todos service", () => {
 
   it("returns stable bounded cursor pages", () => {
     for (const title of ["First", "Second", "Third", "Fourth"]) {
-      createTodo({ title });
+      Result.unwrap(createTodo({ title }));
     }
 
     const firstPage = Result.unwrap(listTodos({ limit: 2 }));

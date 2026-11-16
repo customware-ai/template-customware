@@ -23,7 +23,7 @@ The template does not install Hono's automatic security-header middleware becaus
 
 Add domain procedures to the tRPC router and keep Hono-specific endpoints for transport concerns that do not belong in tRPC.
 
-The temporary `listTodos` procedure returns bounded cursor pages ordered by creation time and row ID. Its input accepts a maximum page size of 100 and its output contains `items` plus `nextCursor`. `createTodo` atomically creates an optional note and linked todo, then returns the authoritative joined row. `todoActivity` takes the caller's UTC offset in minutes and returns todo counts for each of the caller's last seven local days, including zero days. The README defines when this entire example is replaced.
+The temporary `listTodos` procedure returns bounded cursor pages ordered by creation time and row ID. Its input accepts a maximum page size of 100 and its output contains `items` plus `nextCursor`. `createTodo` atomically creates an optional note and linked todo, then returns the authoritative joined row. `todoActivity` takes eight local-midnight ISO instants in `dayStarts`, delimiting the caller's last seven local days, and returns the todo count for each day, including zero days. The README defines when this entire example is replaced.
 
 ## Route Ordering
 
