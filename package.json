@@ -42,7 +42,6 @@
     "jsdom": "31.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tsrs": "0.25.0-ts7.1.0-beta",
     "tsx": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

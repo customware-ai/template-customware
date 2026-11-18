@@ -2,7 +2,7 @@
 
 Vite+ is the repository's unified web toolchain. Its `vp` CLI brings Vite, Rolldown, Vitest, Oxlint, Oxfmt, TypeScript checking, workspace tasks, caching, and Git-hook integration under one configuration. pnpm still defines and installs the workspace.
 
-The repository pins Vite+ `1.5.0`; its matching `@voidzero-dev/vite-plus-core` package supplies Vite.
+The repository pins Vite+ `1.7.0` and its matching Vite core alias in the pnpm catalog.
 
 ## Commands
 
@@ -16,7 +16,7 @@ The repository pins Vite+ `1.5.0`; its matching `@voidzero-dev/vite-plus-core` p
 
 ## Type Checking and Linting
 
-`pnpm run check` performs type-aware linting and type checking using TSRS, an experimental Rust port of the TypeScript compiler and language server. The root Vite configuration selects the installed `tsrs-lint` launcher as Oxlint’s type-aware backend via `OXLINT_TSGOLINT_PATH`; this applies to `vp lint` and `vp check` when they load the root configuration. TSRS can differ from the reference compiler. Some third-party dependencies still install the `typescript` package as a peer, and Vite+ bundles a Go lint backend; neither is selected for the project’s checking or linting. Oxlint rule names retain their `typescript/` prefix because that is the linter’s public rule namespace.
+`pnpm run check` uses the TSRS backend bundled with Vite+. The root Vite configuration enables type-aware linting and compiler diagnostics for the files Oxlint lints. No separate TSRS dependency or backend override is needed.
 
 ## Build and Cache
 
@@ -33,13 +33,13 @@ Do not add `--no-cache`, make both tasks own the same outputs, run these product
 
 ## Configuration and References
 
-The root `vite.config.ts` owns formatting, linting, staged checks, and the repository cache policy. Workspace Vite configs own their tasks and builds. Do not add competing formatter, linter, or hook configuration.
+The root `vite.config.ts` owns formatting and linting. Workspace Vite configs own their build tasks and cache settings. Do not add competing formatter, linter, or hook configuration.
 
 Package placement follows the dependency rule in [code rules](engineering/code-rules.md#code-quality-and-modules).
 
 The server entry point is `build/server/start.js`, started from the repository root by `pnpm start`. Only the shared workspace source is bundled; every other package stays external and Node loads it from the root `node_modules`. The root therefore owns the server's runtime packages, and the API workspace declares only build-time links. Runtime deployments include `build/client`, `build/server`, and the installed production dependencies; install with the frozen lockfile on the target platform so SQLite's native addon matches the runtime, and migrate the database with the root migration command.
 
-Task-specific `input` and `output` settings belong inside each task's `cache` object in Vite+ 1.5.
+Task-specific `input` and `output` settings belong inside each task's `cache` object.
 
 The root `tests/` directory is excluded from linting and type checking, but remains included in formatting and test runs. The project-root `task-workflow/` directory is excluded from lint, the root TypeScript configuration, Vitest discovery, and coverage. Nested directories with that name are not excluded. Application TypeScript projects and Playwright already limit their inputs to their own directories.
 

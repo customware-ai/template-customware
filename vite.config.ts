@@ -1,11 +1,4 @@
-import { fileURLToPath } from "node:url";
-
 import { defineConfig } from "vite-plus";
-
-// Select TSRS for Oxlint’s type-aware rules rather than the bundled Go backend.
-process.env.OXLINT_TSGOLINT_PATH = fileURLToPath(
-  new URL("./node_modules/.bin/tsrs-lint", import.meta.url),
-);
 
 const IGNORE_PATTERNS = [
   "build/**",
