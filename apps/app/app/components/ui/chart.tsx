@@ -43,7 +43,7 @@ export function BarChart({
         color: {
           scale: () =>
             scaleOrdinal<string, string>().range([
-              "var(--primary)",
+              "var(--chart-1)",
               "var(--chart-2)",
               "var(--chart-3)",
               "var(--chart-4)",

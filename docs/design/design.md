@@ -8,6 +8,10 @@ Read this before changing user-facing code. Poor UX is a functional defect.
 - Components use Base UI primitives for accessible behavior and Tailwind CSS v4 for styling.
 - Add or refresh components with the shadcn CLI so `components.json`, dependencies, and CSS stay aligned; do not hand-port components from an older Radix registry.
 - Reuse the existing CSS variables, component variants, spacing, and typography before adding local values.
+- The default look keeps neutral white and grey surfaces with one cobalt `primary` colour and Instrument Sans (bundled through Fontsource, so no font is fetched from a third party). Change `primary`, `secondary`, `chart-*` and `--font-sans` in `apps/app/app/app.css` to give a product its own brand.
+- Show status with the `success`, `warning`, `info` and `destructive` badge variants instead of ad hoc colour classes, so every status reads the same in both themes.
+- Depth comes from three shared shadows: `shadow-(--elevation-surface)` with `ring-1 ring-rim` for cards, `shadow-(--elevation-control)` for fields, outline buttons, tabs and alerts, and `shadow-(--elevation-solid)` for filled primary controls.
+- Use `text-primary-text` for primary-coloured text such as links; it stays readable in dark mode, where `primary` is tuned for white text on filled controls.
 - Keep the global color-mode control usable and keyboard accessible. It defaults to the operating system preference and lets the user explicitly choose light, dark, or system mode.
 - Use composition over configuration and keep one-use page composition with its owning route.
 - Keep props typed and preserve the existing light and dark themes.
